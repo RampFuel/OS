@@ -1,0 +1,1254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RampFuel OS — Architecture &amp; Roadmap</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:          #090D18;
+  --surface:     #0F1524;
+  --card:        #141C30;
+  --border:      #1E2D4A;
+  --border2:     #243658;
+  --text:        #E2E8F0;
+  --muted:       #64748B;
+  --dim:         #94A3B8;
+  --blue:        #4F8EF7;
+  --blue-dim:    #1E3A5F;
+  --orange:      #FF6B35;
+  --orange-dim:  #3D1C0D;
+  --purple:      #A78BFA;
+  --purple-dim:  #2D1F5E;
+  --green:       #34D399;
+  --green-dim:   #0D3326;
+  --red:         #F87171;
+  --red-dim:     #3B1010;
+  --yellow:      #FBBF24;
+  --yellow-dim:  #3D2A00;
+  --radius:      10px;
+  --radius-sm:   6px;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Inter', sans-serif;
+  min-height: 100vh;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* ── Header ─────────────────────────────────────────── */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 32px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.logo { display: flex; align-items: center; gap: 12px; }
+.logo-mark {
+  width: 36px; height: 36px; border-radius: 8px;
+  background: linear-gradient(135deg, var(--orange) 0%, #FF3B00 100%);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 16px; color: #fff;
+}
+.logo-text { font-size: 16px; font-weight: 700; letter-spacing: -0.3px; }
+.logo-sub  { font-size: 11px; color: var(--muted); margin-top: 1px; font-weight: 400; }
+.header-meta { font-size: 12px; color: var(--muted); text-align: right; }
+.header-meta strong { color: var(--dim); }
+
+/* ── Nav tabs ────────────────────────────────────────── */
+.nav {
+  display: flex;
+  gap: 4px;
+  padding: 0 32px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+}
+.nav-btn {
+  padding: 12px 18px;
+  background: none; border: none; cursor: pointer;
+  font-size: 13px; font-weight: 500;
+  color: var(--muted);
+  border-bottom: 2px solid transparent;
+  white-space: nowrap;
+  transition: all .2s;
+  font-family: inherit;
+}
+.nav-btn:hover { color: var(--dim); }
+.nav-btn.active { color: var(--blue); border-bottom-color: var(--blue); }
+
+/* ── Content ────────────────────────────────────────── */
+.content { padding: 36px 32px; max-width: 1200px; margin: 0 auto; }
+.section { display: none; }
+.section.active { display: block; }
+
+/* ── Typography ─────────────────────────────────────── */
+.section-title {
+  font-size: 26px; font-weight: 800;
+  letter-spacing: -0.5px; margin-bottom: 6px;
+}
+.section-sub { font-size: 14px; color: var(--muted); margin-bottom: 32px; }
+h3 { font-size: 15px; font-weight: 700; margin-bottom: 14px; color: var(--dim); letter-spacing: -0.2px; }
+h4 { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .7px; color: var(--muted); margin-bottom: 10px; }
+
+/* ── Grid helpers ────────────────────────────────────── */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+
+/* ── Cards ───────────────────────────────────────────── */
+.card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 20px;
+}
+.card-lg { padding: 24px; }
+.card-sm { padding: 14px 16px; }
+
+/* ── Stat cards ──────────────────────────────────────── */
+.stat-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 18px 20px;
+  display: flex; flex-direction: column; gap: 4px;
+}
+.stat-num { font-size: 32px; font-weight: 800; letter-spacing: -1px; }
+.stat-label { font-size: 12px; color: var(--muted); }
+.stat-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+/* ── Badges / pills ──────────────────────────────────── */
+.badge {
+  display: inline-block; padding: 2px 8px; border-radius: 20px;
+  font-size: 11px; font-weight: 600; letter-spacing: .3px;
+}
+.badge-blue   { background: var(--blue-dim);   color: var(--blue); }
+.badge-orange { background: var(--orange-dim); color: var(--orange); }
+.badge-purple { background: var(--purple-dim); color: var(--purple); }
+.badge-green  { background: var(--green-dim);  color: var(--green); }
+.badge-yellow { background: var(--yellow-dim); color: var(--yellow); }
+.badge-red    { background: var(--red-dim);    color: var(--red); }
+
+/* ── Flow diagram ────────────────────────────────────── */
+.flow {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  overflow-x: auto;
+  padding: 8px 0;
+}
+.flow-node {
+  flex-shrink: 0;
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 14px 16px;
+  text-align: center; min-width: 120px;
+  position: relative;
+}
+.flow-node .node-icon { font-size: 22px; margin-bottom: 6px; }
+.flow-node .node-label { font-size: 12px; font-weight: 600; color: var(--text); }
+.flow-node .node-sub { font-size: 10px; color: var(--muted); margin-top: 2px; }
+.flow-arrow {
+  flex-shrink: 0;
+  display: flex; align-items: center;
+  width: 44px; position: relative;
+}
+.flow-arrow::before {
+  content: '';
+  position: absolute; left: 0; right: 8px; top: 50%;
+  height: 1px; background: var(--border2);
+  transform: translateY(-50%);
+}
+.flow-arrow::after {
+  content: '';
+  position: absolute; right: 2px; top: 50%;
+  transform: translateY(-50%);
+  border: 5px solid transparent;
+  border-left-color: var(--border2);
+  border-right: none;
+}
+.flow-arrow.animated::before {
+  background: linear-gradient(90deg, var(--blue-dim), var(--blue));
+  animation: flowPulse 1.8s ease-in-out infinite;
+}
+.flow-arrow.animated::after { border-left-color: var(--blue); }
+@keyframes flowPulse {
+  0%, 100% { opacity: .4; }
+  50%       { opacity: 1; }
+}
+
+/* ── Security tiers ──────────────────────────────────── */
+.security-tier {
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  padding: 20px 24px;
+  margin-bottom: 14px;
+  position: relative;
+  overflow: hidden;
+}
+.security-tier::before {
+  content: '';
+  position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
+}
+.tier-1::before { background: var(--orange); }
+.tier-2::before { background: var(--blue); }
+.tier-3::before { background: var(--purple); }
+.tier-label {
+  font-size: 11px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .8px; margin-bottom: 6px;
+}
+.tier-1 .tier-label { color: var(--orange); }
+.tier-2 .tier-label { color: var(--blue); }
+.tier-3 .tier-label { color: var(--purple); }
+.tier-title { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+
+/* ── Version comparison ───────────────────────────────── */
+.version-tag {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 12px; border-radius: 20px;
+  font-size: 12px; font-weight: 700;
+  margin-bottom: 20px;
+}
+.ver-current { background: var(--green-dim); color: var(--green); }
+.ver-12      { background: var(--blue-dim); color: var(--blue); }
+.ver-13      { background: var(--purple-dim); color: var(--purple); }
+
+/* ── Component blocks ────────────────────────────────── */
+.component-block {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.component-header {
+  padding: 10px 14px;
+  font-size: 12px; font-weight: 700;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 8px;
+}
+.component-body { padding: 14px; }
+.component-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 7px 0; border-bottom: 1px solid var(--border);
+  font-size: 12px;
+}
+.component-row:last-child { border-bottom: none; }
+.component-key { color: var(--muted); }
+.component-val { color: var(--text); font-weight: 500; font-family: 'JetBrains Mono', monospace; font-size: 11px; }
+
+/* ── Gwen node (special) ─────────────────────────────── */
+.gwen-node {
+  background: var(--purple-dim); border: 1px solid var(--purple);
+  border-radius: var(--radius); padding: 14px 16px;
+  text-align: center; min-width: 130px; flex-shrink: 0;
+}
+.gwen-node .node-icon { font-size: 24px; margin-bottom: 6px; }
+.gwen-node .node-label { font-size: 12px; font-weight: 700; color: var(--purple); }
+.gwen-node .node-sub { font-size: 10px; color: rgba(167,139,250,.6); margin-top: 3px; }
+
+/* ── Approval queue ──────────────────────────────────── */
+.approver-list {
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;
+  margin-top: 12px;
+}
+.approver {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 10px 12px;
+}
+.approver-avatar {
+  width: 32px; height: 32px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 800; flex-shrink: 0;
+}
+.approver-name  { font-size: 13px; font-weight: 600; }
+.approver-role  { font-size: 11px; color: var(--muted); }
+
+/* ── Roadmap ─────────────────────────────────────────── */
+.timeline {
+  position: relative;
+  padding-left: 28px;
+}
+.timeline::before {
+  content: '';
+  position: absolute; left: 8px; top: 12px; bottom: 12px;
+  width: 2px; background: var(--border2);
+}
+.timeline-item {
+  position: relative; margin-bottom: 28px;
+}
+.timeline-dot {
+  position: absolute; left: -24px; top: 4px;
+  width: 16px; height: 16px; border-radius: 50%;
+  border: 2px solid var(--border);
+  background: var(--bg);
+  display: flex; align-items: center; justify-content: center;
+}
+.timeline-dot.done   { background: var(--green); border-color: var(--green); }
+.timeline-dot.active { background: var(--blue);  border-color: var(--blue); box-shadow: 0 0 8px var(--blue); }
+.timeline-dot.future { background: var(--surface); border-color: var(--border2); }
+.tl-ver  { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .7px; margin-bottom: 4px; }
+.tl-name { font-size: 16px; font-weight: 700; margin-bottom: 6px; letter-spacing: -.3px; }
+.tl-desc { font-size: 13px; color: var(--dim); margin-bottom: 12px; }
+.tl-features { display: flex; flex-wrap: wrap; gap: 6px; }
+.tl-feat {
+  font-size: 11px; padding: 3px 10px; border-radius: 20px;
+  background: var(--surface); border: 1px solid var(--border);
+  color: var(--dim);
+}
+
+/* ── Tables ──────────────────────────────────────────── */
+.data-table { width: 100%; border-collapse: collapse; }
+.data-table th, .data-table td {
+  padding: 10px 14px; text-align: left;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+.data-table th { color: var(--muted); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: .5px; background: var(--surface); }
+.data-table tr:last-child td { border-bottom: none; }
+.data-table tr:hover td { background: rgba(255,255,255,.02); }
+
+/* ── Dot live indicator ──────────────────────────────── */
+.live-dot {
+  display: inline-block; width: 7px; height: 7px;
+  border-radius: 50%; background: var(--green);
+  box-shadow: 0 0 6px var(--green);
+  animation: livePulse 2s ease-in-out infinite;
+  margin-right: 5px;
+}
+@keyframes livePulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: .3; }
+}
+
+/* ── New component highlight ─────────────────────────── */
+.new-component {
+  background: var(--blue-dim); border: 1px solid var(--blue);
+  border-radius: var(--radius); padding: 14px 16px;
+  text-align: center; min-width: 120px; flex-shrink: 0;
+}
+.new-component .node-label { font-size: 12px; font-weight: 700; color: var(--blue); }
+.new-component .node-sub   { font-size: 10px; color: rgba(79,142,247,.6); margin-top: 3px; }
+
+/* ── Divider ─────────────────────────────────────────── */
+.divider { height: 1px; background: var(--border); margin: 28px 0; }
+
+/* ── Utils ───────────────────────────────────────────── */
+.mb-4  { margin-bottom: 4px; }
+.mb-8  { margin-bottom: 8px; }
+.mb-16 { margin-bottom: 16px; }
+.mb-24 { margin-bottom: 24px; }
+.mb-32 { margin-bottom: 32px; }
+.mt-16 { margin-top: 16px; }
+.mt-24 { margin-top: 24px; }
+.text-muted { color: var(--muted); }
+.text-dim   { color: var(--dim); }
+.text-green { color: var(--green); }
+.text-blue  { color: var(--blue); }
+.text-orange { color: var(--orange); }
+.text-purple { color: var(--purple); }
+.mono { font-family: 'JetBrains Mono', monospace; font-size: 11px; }
+.fw-600 { font-weight: 600; }
+.fw-700 { font-weight: 700; }
+</style>
+</head>
+<body>
+
+<!-- ── Header ── -->
+<header class="header">
+  <div class="logo">
+    <div class="logo-mark">RF</div>
+    <div>
+      <div class="logo-text">RampFuel OS</div>
+      <div class="logo-sub">Architecture &amp; Roadmap</div>
+    </div>
+  </div>
+  <div class="header-meta">
+    <strong>Team Workshop</strong><br>June 26, 2026
+  </div>
+</header>
+
+<!-- ── Nav ── -->
+<nav class="nav">
+  <button class="nav-btn active" onclick="show('overview',this)">Overview</button>
+  <button class="nav-btn" onclick="show('architecture',this)">Current Architecture</button>
+  <button class="nav-btn" onclick="show('security',this)">Security Model</button>
+  <button class="nav-btn" onclick="show('v12',this)">v1.2 — Gwen: Meeting Layer</button>
+  <button class="nav-btn" onclick="show('v13',this)">v1.3 — AI Orchestration</button>
+  <button class="nav-btn" onclick="show('roadmap',this)">Roadmap</button>
+</nav>
+
+<!-- ────────────────────────────────────────────────────
+     SECTION 1: OVERVIEW
+──────────────────────────────────────────────────────── -->
+<main class="content">
+
+<section id="overview" class="section active">
+  <div class="section-title">RampFuel OS — System Overview</div>
+  <div class="section-sub">A unified client engagement operating system built on Supabase, Asana, and Cloudflare — with AI layers incoming in v1.2 and v1.3.</div>
+
+  <!-- Live stats -->
+  <div class="grid-4 mb-32">
+    <div class="stat-card">
+      <div class="stat-num text-green">11</div>
+      <div class="stat-label">Active Client Portals</div>
+      <div class="stat-sub"><span class="live-dot"></span>Live</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num text-blue">15</div>
+      <div class="stat-label">Asana Webhooks</div>
+      <div class="stat-sub">All GIDs registered</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num text-orange">650+</div>
+      <div class="stat-label">Tasks Synced</div>
+      <div class="stat-sub">Across 14 projects</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num text-purple">22+</div>
+      <div class="stat-label">Edge Functions</div>
+      <div class="stat-sub">Deployed on Supabase</div>
+    </div>
+  </div>
+
+  <!-- Stack summary -->
+  <div class="grid-2 mb-24">
+    <div class="card card-lg">
+      <h3>Tech Stack</h3>
+      <table class="data-table">
+        <thead><tr><th>Layer</th><th>Technology</th><th>Role</th></tr></thead>
+        <tbody>
+          <tr><td>Frontend</td><td><span class="badge badge-orange">HTML/JS</span></td><td>Single-file client portal</td></tr>
+          <tr><td>Database</td><td><span class="badge badge-blue">Supabase Postgres</span></td><td>Single source of truth</td></tr>
+          <tr><td>Auth</td><td><span class="badge badge-blue">Supabase Auth</span></td><td>Domain-routed access</td></tr>
+          <tr><td>Security</td><td><span class="badge badge-green">Row Level Security</span></td><td>DB-enforced isolation</td></tr>
+          <tr><td>Sync gateway</td><td><span class="badge badge-yellow">Cloudflare Worker</span></td><td>HMAC validation</td></tr>
+          <tr><td>Project mgmt</td><td><span class="badge badge-orange">Asana</span></td><td>Operational task source</td></tr>
+          <tr><td>Meetings</td><td><span class="badge badge-purple">Fellow.app</span></td><td>Meeting notes pipeline</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card card-lg">
+      <h3>Active Clients</h3>
+      <table class="data-table">
+        <thead><tr><th>Client</th><th>Tasks</th><th>Sub-tabs</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td>Bumblebee</td><td>30</td><td>—</td><td><span class="badge badge-green">Active</span></td></tr>
+          <tr><td>Cloud Contracts 365</td><td>58</td><td>—</td><td><span class="badge badge-green">Active</span></td></tr>
+          <tr><td>Cork</td><td>36</td><td>—</td><td><span class="badge badge-green">Active</span></td></tr>
+          <tr><td>Dynasend</td><td>95</td><td>FUEL Plan</td><td><span class="badge badge-green">Active</span></td></tr>
+          <tr><td>Evo Security</td><td>29</td><td>—</td><td><span class="badge badge-green">Active</span></td></tr>
+          <tr><td>GoTo Technologies</td><td>51</td><td>—</td><td><span class="badge badge-green">Active</span></td></tr>
+          <tr><td>HelpGhost</td><td>30</td><td>—</td><td><span class="badge badge-green">Active</span></td></tr>
+          <tr><td>Kalibr8</td><td>37</td><td>—</td><td><span class="badge badge-green">Active</span></td></tr>
+          <tr><td>Lexful</td><td>73</td><td>HubSpot Overhaul</td><td><span class="badge badge-green">Active</span></td></tr>
+          <tr><td>Plansom</td><td>65</td><td>—</td><td><span class="badge badge-green">Active</span></td></tr>
+          <tr><td>ScalePad</td><td>71</td><td>—</td><td><span class="badge badge-green">Active</span></td></tr>
+          <tr><td>ThreatMate</td><td>14</td><td>—</td><td><span class="badge badge-green">Active</span></td></tr>
+          <tr><td>NuroBlox</td><td>30</td><td>—</td><td><span class="badge badge-yellow">Inactive</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Version roadmap pills -->
+  <div class="card">
+    <h3>Version Status</h3>
+    <div style="display:flex; gap:16px; flex-wrap:wrap;">
+      <div style="flex:1;min-width:180px; padding:16px; background:var(--surface); border-radius:var(--radius); border:1px solid var(--green);">
+        <div style="font-size:11px;font-weight:700;color:var(--green);margin-bottom:4px;">MVP 1.0 / 1.1 — LIVE</div>
+        <div style="font-size:13px;font-weight:600;margin-bottom:6px;">Core Portal + Sync</div>
+        <div style="font-size:12px;color:var(--muted);">Asana sync, client portals, RLS, realtime updates, multi-project tabs</div>
+      </div>
+      <div style="flex:1;min-width:180px; padding:16px; background:var(--surface); border-radius:var(--radius); border:1px solid var(--blue);">
+        <div style="font-size:11px;font-weight:700;color:var(--blue);margin-bottom:4px;">v1.2 — UPCOMING</div>
+        <div style="font-size:13px;font-weight:600;margin-bottom:6px;">Gwen: Meeting Layer</div>
+        <div style="font-size:12px;color:var(--muted);">AI-powered meeting processing, task deduplication, human approval queue</div>
+      </div>
+      <div style="flex:1;min-width:180px; padding:16px; background:var(--surface); border-radius:var(--radius); border:1px solid var(--purple);">
+        <div style="font-size:11px;font-weight:700;color:var(--purple);margin-bottom:4px;">v1.3 — PLANNED</div>
+        <div style="font-size:13px;font-weight:600;margin-bottom:6px;">Gwen: AI Orchestration</div>
+        <div style="font-size:12px;color:var(--muted);">Deliverable generation, context memory, autonomous workflows with approval gates</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ────────────────────────────────────────────────────
+     SECTION 2: ARCHITECTURE
+──────────────────────────────────────────────────────── -->
+<section id="architecture" class="section">
+  <div class="section-title">Current Architecture</div>
+  <div class="section-sub">How data moves from Fellow.app meetings and Asana tasks into the client portal, in real time.</div>
+
+  <!-- Data flow diagram -->
+  <div class="card card-lg mb-24">
+    <h4>Data Flow — End to End</h4>
+    <div class="flow" style="padding:12px 0;">
+      <div class="flow-node">
+        <div class="node-icon">📝</div>
+        <div class="node-label">Fellow.app</div>
+        <div class="node-sub">Meeting notes</div>
+      </div>
+      <div class="flow-arrow animated"></div>
+      <div class="flow-node">
+        <div class="node-icon">📋</div>
+        <div class="node-label">Asana</div>
+        <div class="node-sub">14 projects / 15 webhooks</div>
+      </div>
+      <div class="flow-arrow animated"></div>
+      <div class="flow-node" style="border-color:var(--yellow); background:var(--yellow-dim);">
+        <div class="node-icon">⚡</div>
+        <div class="node-label" style="color:var(--yellow);">Cloudflare Worker</div>
+        <div class="node-sub">HMAC validation</div>
+      </div>
+      <div class="flow-arrow animated"></div>
+      <div class="flow-node" style="border-color:var(--blue); background:var(--blue-dim);">
+        <div class="node-icon">🔧</div>
+        <div class="node-label" style="color:var(--blue);">asana-sync</div>
+        <div class="node-sub">Edge Fn v22</div>
+      </div>
+      <div class="flow-arrow animated"></div>
+      <div class="flow-node" style="border-color:var(--green); background:var(--green-dim);">
+        <div class="node-icon">🗄️</div>
+        <div class="node-label" style="color:var(--green);">Supabase DB</div>
+        <div class="node-sub">PostgreSQL + RLS</div>
+      </div>
+      <div class="flow-arrow animated"></div>
+      <div class="flow-node">
+        <div class="node-icon">🖥️</div>
+        <div class="node-label">Client Portal</div>
+        <div class="node-sub">11 active clients</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Component details -->
+  <div class="grid-2 mb-24">
+    <div>
+      <h3>Asana Layer</h3>
+      <div class="component-block mb-16">
+        <div class="component-header" style="background:var(--orange-dim); color:var(--orange);">
+          📋 Asana Projects
+        </div>
+        <div class="component-body">
+          <div class="component-row">
+            <span class="component-key">Client projects</span>
+            <span class="component-val">12 active</span>
+          </div>
+          <div class="component-row">
+            <span class="component-key">Webhooks registered</span>
+            <span class="component-val">15 (all GIDs stored)</span>
+          </div>
+          <div class="component-row">
+            <span class="component-key">Section convention (recaps)</span>
+            <span class="component-val">📅 Weekly Sync</span>
+          </div>
+          <div class="component-row">
+            <span class="component-key">Section convention (action items)</span>
+            <span class="component-val">📌 Weekly Sync Action items</span>
+          </div>
+          <div class="component-row">
+            <span class="component-key">Status custom field GID</span>
+            <span class="component-val">1214062154293825</span>
+          </div>
+        </div>
+      </div>
+
+      <h3>Sync Gateway</h3>
+      <div class="component-block">
+        <div class="component-header" style="background:var(--yellow-dim); color:var(--yellow);">
+          ⚡ Cloudflare Worker
+        </div>
+        <div class="component-body">
+          <div class="component-row">
+            <span class="component-key">Worker URL</span>
+            <span class="component-val">asana-portal-sync.workers.dev</span>
+          </div>
+          <div class="component-row">
+            <span class="component-key">Validation method</span>
+            <span class="component-val">HMAC-SHA256 signature</span>
+          </div>
+          <div class="component-row">
+            <span class="component-key">Secret store</span>
+            <span class="component-val">asana_webhook_config</span>
+          </div>
+          <div class="component-row">
+            <span class="component-key">On valid event</span>
+            <span class="component-val">Calls asana-sync edge fn</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <h3>Supabase Layer</h3>
+      <div class="component-block mb-16">
+        <div class="component-header" style="background:var(--green-dim); color:var(--green);">
+          🗄️ Database Schema (key tables)
+        </div>
+        <div class="component-body">
+          <div class="component-row">
+            <span class="component-key">clients</span>
+            <span class="component-val">13 rows</span>
+          </div>
+          <div class="component-row">
+            <span class="component-key">projects</span>
+            <span class="component-val">15 rows (incl. sub-projects)</span>
+          </div>
+          <div class="component-row">
+            <span class="component-key">tasks</span>
+            <span class="component-val">650+ rows</span>
+          </div>
+          <div class="component-row">
+            <span class="component-key">task_comments</span>
+            <span class="component-val">Client collaboration</span>
+          </div>
+          <div class="component-row">
+            <span class="component-key">weekly_updates</span>
+            <span class="component-val">Executive summaries</span>
+          </div>
+          <div class="component-row">
+            <span class="component-key">client_requests</span>
+            <span class="component-val">Portal request form</span>
+          </div>
+          <div class="component-row">
+            <span class="component-key">asana_webhook_config</span>
+            <span class="component-val">15 rows / all GIDs stored</span>
+          </div>
+        </div>
+      </div>
+
+      <h3>Portal Features</h3>
+      <div class="component-block">
+        <div class="component-header" style="background:var(--blue-dim); color:var(--blue);">
+          🖥️ Client Portal — portal.html
+        </div>
+        <div class="component-body">
+          <div class="component-row"><span class="component-key">Dashboard</span><span class="component-val">KPI + recent activity</span></div>
+          <div class="component-row"><span class="component-key">My Tasks</span><span class="component-val">Client-assigned tasks</span></div>
+          <div class="component-row"><span class="component-key">All Tasks</span><span class="component-val">Full project board</span></div>
+          <div class="component-row"><span class="component-key">Meetings</span><span class="component-val">Fellow.app recaps</span></div>
+          <div class="component-row"><span class="component-key">Files</span><span class="component-val">Egnyte integration</span></div>
+          <div class="component-row"><span class="component-key">Sub-project tabs</span><span class="component-val">Dynamic per client</span></div>
+          <div class="component-row"><span class="component-key">Realtime sync</span><span class="component-val">Broadcast + 15s poll</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Portal routing logic -->
+  <div class="card">
+    <h3>Portal Section Routing Logic</h3>
+    <table class="data-table">
+      <thead><tr><th>Asana Section Name</th><th>Portal Tab</th><th>Logic</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><span class="mono">📌 Weekly Sync Action items</span></td>
+          <td>All Tasks</td>
+          <td>Exact match on section name constant</td>
+        </tr>
+        <tr>
+          <td><span class="mono">📅 Weekly Sync</span> / <span class="mono">📅 Weekly sync</span></td>
+          <td>Meetings</td>
+          <td><span class="mono">asana_section_name ILIKE '📅%'</span></td>
+        </tr>
+        <tr>
+          <td>All other sections (phases, milestones)</td>
+          <td>All Tasks</td>
+          <td>Neither of the above match</td>
+        </tr>
+        <tr>
+          <td>Sub-project tasks (is_primary = false)</td>
+          <td>Dynamic tab (tab_label)</td>
+          <td>Separate project_id query per tab</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ────────────────────────────────────────────────────
+     SECTION 3: SECURITY
+──────────────────────────────────────────────────────── -->
+<section id="security" class="section">
+  <div class="section-title">Security Model</div>
+  <div class="section-sub">Three independent security layers — network, authentication, and data. A breach of one layer does not compromise the others.</div>
+
+  <div class="grid-2 mb-24">
+    <div>
+      <div class="security-tier tier-1 mb-16">
+        <div class="tier-label">Layer 1 — Network</div>
+        <div class="tier-title">Cloudflare HMAC Validation</div>
+        <div style="font-size:13px; color:var(--dim); margin-bottom:14px;">
+          Every Asana webhook request is validated before reaching Supabase. Forged or replayed requests are rejected at the Cloudflare edge.
+        </div>
+        <table class="data-table">
+          <tr><td class="component-key">Method</td><td>HMAC-SHA256 signature on request body</td></tr>
+          <tr><td class="component-key">Secret per project</td><td>Stored in <span class="mono">asana_webhook_config.hook_secret</span></td></tr>
+          <tr><td class="component-key">Failure response</td><td>HTTP 401 — request dropped</td></tr>
+          <tr><td class="component-key">Coverage</td><td>All 15 registered Asana webhooks</td></tr>
+        </table>
+      </div>
+
+      <div class="security-tier tier-2">
+        <div class="tier-label">Layer 2 — Authentication</div>
+        <div class="tier-title">Supabase Auth + Domain Routing</div>
+        <div style="font-size:13px; color:var(--dim); margin-bottom:14px;">
+          Email-based auth with automatic role assignment. No manual role configuration — domain suffix determines access tier.
+        </div>
+        <table class="data-table">
+          <tr><td class="component-key">Admin access</td><td><span class="mono">@rampfuel.com</span> — full cross-client access</td></tr>
+          <tr><td class="component-key">Client access</td><td>All other emails — scoped to their client only</td></tr>
+          <tr><td class="component-key">Client linking</td><td><span class="mono">client_users</span> table (auth_user_id → client_id)</td></tr>
+          <tr><td class="component-key">Admin users</td><td>david, jared, cole, cami @rampfuel.com</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div>
+      <div class="security-tier tier-3" style="height:100%;">
+        <div class="tier-label">Layer 3 — Data</div>
+        <div class="tier-title">Row Level Security (RLS)</div>
+        <div style="font-size:13px; color:var(--dim); margin-bottom:14px;">
+          Enforced at the PostgreSQL layer — not the application layer. Even if portal code had a bug, cross-client data leaks are impossible.
+        </div>
+
+        <h4 style="margin-top:8px;">Key Policies</h4>
+        <div class="component-block mb-14">
+          <div class="component-header" style="color:var(--purple);">tasks — Client read policy</div>
+          <div class="component-body" style="background:var(--bg);">
+            <code style="font-size:11px; color:var(--dim); line-height:1.8; display:block;">
+              EXISTS (<br>
+              &nbsp;&nbsp;SELECT 1 FROM projects p<br>
+              &nbsp;&nbsp;JOIN client_users cu ON cu.client_id = p.client_id<br>
+              &nbsp;&nbsp;WHERE p.id = tasks.project_id<br>
+              &nbsp;&nbsp;AND cu.auth_user_id = auth.uid()<br>
+              )
+            </code>
+          </div>
+        </div>
+
+        <div class="component-block">
+          <div class="component-header" style="color:var(--purple);">All tables — RampFuel admin policy</div>
+          <div class="component-body" style="background:var(--bg);">
+            <code style="font-size:11px; color:var(--dim); line-height:1.8; display:block;">
+              auth.email() ILIKE '%@rampfuel.com'
+            </code>
+          </div>
+        </div>
+
+        <div style="margin-top:16px; padding:14px; background:var(--green-dim); border-radius:var(--radius); border:1px solid var(--green);">
+          <div style="font-size:12px; font-weight:700; color:var(--green); margin-bottom:6px;">Key guarantee</div>
+          <div style="font-size:12px; color:var(--dim);">
+            A Lexful user querying the <span class="mono">tasks</span> table will only ever receive rows where <span class="mono">projects.client_id = Lexful</span> — even via direct API calls. The database enforces this, not the portal.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Security summary table -->
+  <div class="card">
+    <h3>What Each Layer Protects Against</h3>
+    <table class="data-table">
+      <thead><tr><th>Threat</th><th>Blocked By</th><th>Layer</th></tr></thead>
+      <tbody>
+        <tr><td>Spoofed Asana webhook from third party</td><td>HMAC signature mismatch</td><td><span class="badge badge-orange">Layer 1</span></td></tr>
+        <tr><td>Replayed or tampered webhook payload</td><td>HMAC signature mismatch</td><td><span class="badge badge-orange">Layer 1</span></td></tr>
+        <tr><td>Unauthenticated portal access</td><td>Supabase Auth session check</td><td><span class="badge badge-blue">Layer 2</span></td></tr>
+        <tr><td>Client accessing another client's portal</td><td>Auth domain routing + RLS</td><td><span class="badge badge-blue">Layer 2</span> <span class="badge badge-purple">Layer 3</span></td></tr>
+        <tr><td>Direct Supabase API call to steal data</td><td>RLS policy (enforced in DB)</td><td><span class="badge badge-purple">Layer 3</span></td></tr>
+        <tr><td>Portal code bug leaking cross-client data</td><td>RLS policy (not bypassable)</td><td><span class="badge badge-purple">Layer 3</span></td></tr>
+        <tr><td>Sub-project data visible to wrong client</td><td>project.client_id join in RLS</td><td><span class="badge badge-purple">Layer 3</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ────────────────────────────────────────────────────
+     SECTION 4: v1.2 — GWEN MEETING LAYER
+──────────────────────────────────────────────────────── -->
+<section id="v12" class="section">
+  <div class="version-tag ver-12">v1.2 — Upcoming</div>
+  <div class="section-title">Gwen: Meeting Processing Layer</div>
+  <div class="section-sub">Gwen enters the pipeline between Fellow.app and the tasks table — ingesting meeting transcripts, extracting structured work, deduplicating against existing tasks, and routing candidates to a human approval queue before anything goes live.</div>
+
+  <!-- What changes -->
+  <div class="card mb-24" style="border-color:var(--blue);">
+    <h4>What changes from current architecture</h4>
+    <div style="display:flex; gap:24px;">
+      <div style="flex:1;">
+        <div style="font-size:12px; font-weight:700; color:var(--muted); margin-bottom:8px;">BEFORE (current)</div>
+        <div style="font-size:13px; color:var(--dim);">Fellow.app writes action items directly to Asana as task notes. Asana webhooks sync them to Supabase. No processing, no deduplication, no intelligence — the full volume lands in the DB and portal as-is. Jared and David interpret everything manually.</div>
+      </div>
+      <div style="width:1px; background:var(--border);"></div>
+      <div style="flex:1;">
+        <div style="font-size:12px; font-weight:700; color:var(--blue); margin-bottom:8px;">AFTER (v1.2)</div>
+        <div style="font-size:13px; color:var(--dim);">Gwen intercepts the meeting output, runs semantic dedup against existing open tasks, and stages candidates for human review. Nothing writes to production tasks without an approver signing off. Jared and David review decisions — they don't make them from scratch.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- New flow -->
+  <div class="card card-lg mb-24">
+    <h4>v1.2 Data Flow</h4>
+    <div class="flow" style="padding:12px 0; flex-wrap:wrap; gap:0;">
+      <div class="flow-node">
+        <div class="node-icon">📝</div>
+        <div class="node-label">Fellow.app</div>
+        <div class="node-sub">Meeting transcript / summary</div>
+      </div>
+      <div class="flow-arrow animated"></div>
+      <div class="gwen-node">
+        <div class="node-icon">🤖</div>
+        <div class="node-label">Gwen</div>
+        <div class="node-sub">Processing engine</div>
+      </div>
+      <div class="flow-arrow animated" style="--arrow-color:var(--purple)"></div>
+      <div class="flow-node" style="border-color:var(--blue); background:var(--blue-dim);">
+        <div class="node-icon">🔍</div>
+        <div class="node-label" style="color:var(--blue);">Dedup Check</div>
+        <div class="node-sub">vs. open tasks</div>
+      </div>
+      <div class="flow-arrow animated"></div>
+      <div class="new-component">
+        <div class="node-icon">📥</div>
+        <div class="node-label">Candidates Table</div>
+        <div class="node-sub">Staged — not live</div>
+      </div>
+      <div class="flow-arrow animated"></div>
+      <div class="flow-node" style="border-color:var(--orange); background:var(--orange-dim);">
+        <div class="node-icon">👥</div>
+        <div class="node-label" style="color:var(--orange);">Approval Queue</div>
+        <div class="node-sub">Human review</div>
+      </div>
+      <div class="flow-arrow animated"></div>
+      <div class="flow-node" style="border-color:var(--green); background:var(--green-dim);">
+        <div class="node-icon">✅</div>
+        <div class="node-label" style="color:var(--green);">tasks table</div>
+        <div class="node-sub">Production</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid-2 mb-24">
+    <!-- Gwen processing detail -->
+    <div class="card">
+      <h3>What Gwen Extracts</h3>
+      <table class="data-table">
+        <thead><tr><th>Output Type</th><th>Routed To</th></tr></thead>
+        <tbody>
+          <tr><td>Action items</td><td>gwen_task_candidates</td></tr>
+          <tr><td>Decisions</td><td>decisions table (new)</td></tr>
+          <tr><td>Blockers</td><td>blockers table (new)</td></tr>
+          <tr><td>Follow-ups</td><td>gwen_task_candidates</td></tr>
+          <tr><td>Noise / irrelevant</td><td>Archived with reason</td></tr>
+        </tbody>
+      </table>
+
+      <div class="divider"></div>
+      <h3>Dedup Logic</h3>
+      <table class="data-table">
+        <thead><tr><th>Decision</th><th>Condition</th></tr></thead>
+        <tbody>
+          <tr><td>Create new task</td><td>No semantic match found</td></tr>
+          <tr><td>Update existing</td><td>High similarity, same client + milestone</td></tr>
+          <tr><td>Link to existing</td><td>Related but distinct enough to keep separate</td></tr>
+          <tr><td>Flag for review</td><td>Ambiguous match — human decides</td></tr>
+          <tr><td>Discard</td><td>Confirmed duplicate or noise</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Approval queue -->
+    <div class="card">
+      <h3>Human Approval Queue</h3>
+      <div style="font-size:13px; color:var(--dim); margin-bottom:16px;">
+        Nothing writes to <span class="mono">tasks</span> without an approver acting on it. Rejected candidates are archived with a reason — full audit trail.
+      </div>
+
+      <h4>Approvers</h4>
+      <div class="approver-list">
+        <div class="approver">
+          <div class="approver-avatar" style="background:#1E3A5F; color:var(--blue);">JJ</div>
+          <div>
+            <div class="approver-name">Jared Smith</div>
+            <div class="approver-role">Managing Partner</div>
+          </div>
+        </div>
+        <div class="approver">
+          <div class="approver-avatar" style="background:#3D1C0D; color:var(--orange);">DG</div>
+          <div>
+            <div class="approver-name">David Guarin</div>
+            <div class="approver-role">Operations Lead</div>
+          </div>
+        </div>
+        <div class="approver">
+          <div class="approver-avatar" style="background:#0D3326; color:var(--green);">CO</div>
+          <div>
+            <div class="approver-name">Cole</div>
+            <div class="approver-role">Advisor</div>
+          </div>
+        </div>
+        <div class="approver">
+          <div class="approver-avatar" style="background:#2D1F5E; color:var(--purple);">CL</div>
+          <div>
+            <div class="approver-name">Cami Lombo</div>
+            <div class="approver-role">Operations</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+      <h3>New DB Tables in v1.2</h3>
+      <table class="data-table">
+        <thead><tr><th>Table</th><th>Purpose</th></tr></thead>
+        <tbody>
+          <tr><td><span class="mono">gwen_task_candidates</span></td><td>Staged tasks awaiting approval</td></tr>
+          <tr><td><span class="mono">gwen_runs</span></td><td>Processing run audit log</td></tr>
+          <tr><td><span class="mono">decisions</span></td><td>What was decided, when, by whom</td></tr>
+          <tr><td><span class="mono">blockers</span></td><td>Active and resolved blockers</td></tr>
+          <tr><td><span class="mono">action_item_candidates</span></td><td>Already exists — extended by Gwen</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Impact on team -->
+  <div class="card" style="border-color:var(--green);">
+    <h3>Impact on the Team</h3>
+    <table class="data-table">
+      <thead><tr><th>Who</th><th>Today</th><th>v1.2</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>Jared</strong></td>
+          <td>Attends every meeting, manually interprets output into tasks</td>
+          <td>Reviews Gwen's pre-structured candidates — approve / reject / edit</td>
+        </tr>
+        <tr>
+          <td><strong>David</strong></td>
+          <td>Executes tasks, also handles interpretation bottleneck</td>
+          <td>Moves to QA and architecture — reviews edge cases Gwen flags</td>
+        </tr>
+        <tr>
+          <td><strong>Cole / Cami</strong></td>
+          <td>Limited visibility into task creation pipeline</td>
+          <td>Designated approvers with queue access and audit trail</td>
+        </tr>
+        <tr>
+          <td><strong>Clients</strong></td>
+          <td>See tasks after manual creation lag</td>
+          <td>Faster task visibility — Gwen processes meetings same-day</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ────────────────────────────────────────────────────
+     SECTION 5: v1.3 — AI ORCHESTRATION
+──────────────────────────────────────────────────────── -->
+<section id="v13" class="section">
+  <div class="version-tag ver-13">v1.3 — Planned</div>
+  <div class="section-title">Gwen: AI Orchestration Layer</div>
+  <div class="section-sub">Gwen evolves from a meeting processor into a full engagement intelligence system — with context memory, deliverable generation via Claude, and autonomous workflows that reduce human bottlenecks across the entire client lifecycle.</div>
+
+  <!-- Full architecture with AI layer -->
+  <div class="card card-lg mb-24" style="border-color:var(--purple);">
+    <h4>v1.3 Full System Architecture</h4>
+
+    <!-- Context memory layer -->
+    <div style="background:var(--purple-dim); border:1px solid var(--purple); border-radius:var(--radius); padding:16px; margin-bottom:16px;">
+      <div style="font-size:11px; font-weight:700; color:var(--purple); text-transform:uppercase; letter-spacing:.7px; margin-bottom:10px;">Context Memory Layer (New in v1.3)</div>
+      <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:10px;">
+        <div style="background:var(--bg); border:1px solid var(--border); border-radius:var(--radius-sm); padding:10px; text-align:center; font-size:11px; color:var(--dim);">📋<br>Decisions</div>
+        <div style="background:var(--bg); border:1px solid var(--border); border-radius:var(--radius-sm); padding:10px; text-align:center; font-size:11px; color:var(--dim);">🚧<br>Blockers</div>
+        <div style="background:var(--bg); border:1px solid var(--border); border-radius:var(--radius-sm); padding:10px; text-align:center; font-size:11px; color:var(--dim);">👤<br>Client Prefs</div>
+        <div style="background:var(--bg); border:1px solid var(--border); border-radius:var(--radius-sm); padding:10px; text-align:center; font-size:11px; color:var(--dim);">📁<br>Deliverable History</div>
+      </div>
+    </div>
+
+    <!-- Data flow -->
+    <div class="flow" style="padding:8px 0; flex-wrap:wrap; gap:0;">
+      <div class="flow-node">
+        <div class="node-icon">📝</div>
+        <div class="node-label">Fellow.app</div>
+        <div class="node-sub">Transcript / summary</div>
+      </div>
+      <div class="flow-arrow animated"></div>
+      <div class="gwen-node">
+        <div class="node-icon">🧠</div>
+        <div class="node-label">Gwen Orchestrator</div>
+        <div class="node-sub">Reads context memory</div>
+      </div>
+      <div class="flow-arrow animated"></div>
+      <div class="flow-node" style="border-color:var(--blue); background:var(--blue-dim);">
+        <div class="node-icon">📥</div>
+        <div class="node-label" style="color:var(--blue);">Approval Queue</div>
+        <div class="node-sub">Tasks + deliverables</div>
+      </div>
+      <div class="flow-arrow animated"></div>
+      <div class="flow-node" style="border-color:var(--orange); background:var(--orange-dim);">
+        <div class="node-icon">👥</div>
+        <div class="node-label" style="color:var(--orange);">Human Review</div>
+        <div class="node-sub">Jared / David / Cole / Cami</div>
+      </div>
+      <div class="flow-arrow animated"></div>
+      <div class="flow-node" style="border-color:var(--green); background:var(--green-dim);">
+        <div class="node-icon">🚀</div>
+        <div class="node-label" style="color:var(--green);">Live Portal</div>
+        <div class="node-sub">Client sees it</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid-2 mb-24">
+    <!-- Deliverable pipeline -->
+    <div class="card" style="border-color:var(--purple);">
+      <h3>Deliverable Generation Pipeline</h3>
+      <div style="font-size:13px; color:var(--dim); margin-bottom:16px;">
+        When Gwen detects a task that requires a deliverable, it triggers a Claude generation pipeline — drafting content against the client's full engagement history.
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <div style="display:flex; align-items:flex-start; gap:12px; padding:12px; background:var(--surface); border-radius:var(--radius-sm);">
+          <div style="width:24px;height:24px;border-radius:50%;background:var(--purple-dim);color:var(--purple);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">1</div>
+          <div><div style="font-size:12px;font-weight:600;">Task detection</div><div style="font-size:11px;color:var(--muted);">Gwen identifies deliverable_type (presentation, report, email, etc.)</div></div>
+        </div>
+        <div style="display:flex; align-items:flex-start; gap:12px; padding:12px; background:var(--surface); border-radius:var(--radius-sm);">
+          <div style="width:24px;height:24px;border-radius:50%;background:var(--purple-dim);color:var(--purple);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">2</div>
+          <div><div style="font-size:12px;font-weight:600;">Context assembly</div><div style="font-size:11px;color:var(--muted);">Gwen pulls client history, prior decisions, engagement notes from memory layer</div></div>
+        </div>
+        <div style="display:flex; align-items:flex-start; gap:12px; padding:12px; background:var(--surface); border-radius:var(--radius-sm);">
+          <div style="width:24px;height:24px;border-radius:50%;background:var(--purple-dim);color:var(--purple);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">3</div>
+          <div><div style="font-size:12px;font-weight:600;">Claude generation</div><div style="font-size:11px;color:var(--muted);">Claude drafts the deliverable using full context + task spec</div></div>
+        </div>
+        <div style="display:flex; align-items:flex-start; gap:12px; padding:12px; background:var(--surface); border-radius:var(--radius-sm);">
+          <div style="width:24px;height:24px;border-radius:50%;background:var(--purple-dim);color:var(--purple);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">4</div>
+          <div><div style="font-size:12px;font-weight:600;">Staged draft</div><div style="font-size:11px;color:var(--muted);">Draft stored in <span class="mono">deliverables</span> table (status: draft) — not visible to client</div></div>
+        </div>
+        <div style="display:flex; align-items:flex-start; gap:12px; padding:12px; background:var(--surface); border-radius:var(--radius-sm);">
+          <div style="width:24px;height:24px;border-radius:50%;background:var(--green-dim);color:var(--green);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">5</div>
+          <div><div style="font-size:12px;font-weight:600;">Publish</div><div style="font-size:11px;color:var(--muted);">After human review: pushed to portal or Egnyte</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- New capabilities -->
+    <div>
+      <div class="card mb-16">
+        <h3>New Capabilities vs. v1.2</h3>
+        <table class="data-table">
+          <thead><tr><th>Capability</th><th>v1.2</th><th>v1.3</th></tr></thead>
+          <tbody>
+            <tr><td>Meeting processing</td><td><span class="badge badge-green">Yes</span></td><td><span class="badge badge-green">Yes</span></td></tr>
+            <tr><td>Task deduplication</td><td><span class="badge badge-green">Yes</span></td><td><span class="badge badge-green">Yes</span></td></tr>
+            <tr><td>Approval queue</td><td><span class="badge badge-green">Yes</span></td><td><span class="badge badge-green">Yes</span></td></tr>
+            <tr><td>Context memory</td><td><span class="badge badge-red">No</span></td><td><span class="badge badge-green">Yes</span></td></tr>
+            <tr><td>Deliverable generation</td><td><span class="badge badge-red">No</span></td><td><span class="badge badge-green">Yes</span></td></tr>
+            <tr><td>Decision tracking</td><td><span class="badge badge-blue">Partial</span></td><td><span class="badge badge-green">Full</span></td></tr>
+            <tr><td>Client preference memory</td><td><span class="badge badge-red">No</span></td><td><span class="badge badge-green">Yes</span></td></tr>
+            <tr><td>Autonomous workflows</td><td><span class="badge badge-red">No</span></td><td><span class="badge badge-green">Yes</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <h3>New DB Tables in v1.3</h3>
+        <table class="data-table">
+          <thead><tr><th>Table</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td><span class="mono">deliverables</span></td><td>Drafts + published assets</td></tr>
+            <tr><td><span class="mono">client_preferences</span></td><td>Persistent client context</td></tr>
+            <tr><td><span class="mono">engagement_memory</span></td><td>Cross-meeting context store</td></tr>
+            <tr><td><span class="mono">gwen_workflows</span></td><td>Autonomous workflow definitions</td></tr>
+            <tr><td><span class="mono">visibility_controls</span></td><td>Internal / client / editable flags</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Engagement hierarchy -->
+  <div class="card">
+    <h3>v1.3 Engagement Hierarchy (replaces flat project model)</h3>
+    <div style="display:flex; gap:0; align-items:flex-start; overflow-x:auto; padding:8px 0;">
+      <div style="text-align:center; min-width:110px; padding:12px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);">
+        <div style="font-size:20px; margin-bottom:4px;">🏢</div>
+        <div style="font-size:12px; font-weight:700;">Client</div>
+      </div>
+      <div style="display:flex; align-items:center; padding:0 6px; color:var(--border2); font-size:18px;">›</div>
+      <div style="text-align:center; min-width:120px; padding:12px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);">
+        <div style="font-size:20px; margin-bottom:4px;">🎯</div>
+        <div style="font-size:12px; font-weight:700;">Engagement</div>
+        <div style="font-size:10px; color:var(--muted);">12-36 month mandate</div>
+      </div>
+      <div style="display:flex; align-items:center; padding:0 6px; color:var(--border2); font-size:18px;">›</div>
+      <div style="text-align:center; min-width:120px; padding:12px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);">
+        <div style="font-size:20px; margin-bottom:4px;">🏁</div>
+        <div style="font-size:12px; font-weight:700;">Milestones</div>
+        <div style="font-size:10px; color:var(--muted);">Onboarding, Launch, etc.</div>
+      </div>
+      <div style="display:flex; align-items:center; padding:0 6px; color:var(--border2); font-size:18px;">›</div>
+      <div style="text-align:center; min-width:110px; padding:12px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);">
+        <div style="font-size:20px; margin-bottom:4px;">🔀</div>
+        <div style="font-size:12px; font-weight:700;">Workstreams</div>
+        <div style="font-size:10px; color:var(--muted);">Parallel tracks</div>
+      </div>
+      <div style="display:flex; align-items:center; padding:0 6px; color:var(--border2); font-size:18px;">›</div>
+      <div style="text-align:center; min-width:100px; padding:12px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);">
+        <div style="font-size:20px; margin-bottom:4px;">✅</div>
+        <div style="font-size:12px; font-weight:700;">Tasks</div>
+        <div style="font-size:10px; color:var(--muted);">+ Comments + Decisions</div>
+      </div>
+      <div style="display:flex; align-items:center; padding:0 6px; color:var(--border2); font-size:18px;">›</div>
+      <div style="text-align:center; min-width:110px; padding:12px; background:var(--purple-dim); border:1px solid var(--purple); border-radius:var(--radius);">
+        <div style="font-size:20px; margin-bottom:4px;">📄</div>
+        <div style="font-size:12px; font-weight:700; color:var(--purple);">Deliverables</div>
+        <div style="font-size:10px; color:rgba(167,139,250,.6);">Claude-generated</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ────────────────────────────────────────────────────
+     SECTION 6: ROADMAP
+──────────────────────────────────────────────────────── -->
+<section id="roadmap" class="section">
+  <div class="section-title">Version Roadmap</div>
+  <div class="section-sub">RampFuel OS evolution — from a real-time sync portal to a fully AI-orchestrated engagement intelligence system.</div>
+
+  <div class="grid-2">
+    <div class="timeline">
+      <div class="timeline-item">
+        <div class="timeline-dot done"></div>
+        <div class="tl-ver" style="color:var(--green);">MVP 1.0 — Shipped</div>
+        <div class="tl-name">Core Portal + Sync</div>
+        <div class="tl-desc">The foundation. Real-time Asana sync into a secure, RLS-enforced Supabase backend with a branded client portal.</div>
+        <div class="tl-features">
+          <span class="tl-feat">Asana webhooks</span><span class="tl-feat">Cloudflare HMAC</span><span class="tl-feat">Supabase Auth</span>
+          <span class="tl-feat">RLS policies</span><span class="tl-feat">Client portal</span><span class="tl-feat">Password reset</span>
+          <span class="tl-feat">Branded emails</span>
+        </div>
+      </div>
+
+      <div class="timeline-item">
+        <div class="timeline-dot done"></div>
+        <div class="tl-ver" style="color:var(--green);">v1.1 — Shipped</div>
+        <div class="tl-name">Meeting Recaps + Multi-Project</div>
+        <div class="tl-desc">Section-aware routing for Fellow.app meeting recaps. Multi-project tabs per client. Full webhook audit and backfill tooling.</div>
+        <div class="tl-features">
+          <span class="tl-feat">Meetings tab</span><span class="tl-feat">Section routing</span><span class="tl-feat">Sub-project tabs</span>
+          <span class="tl-feat">Realtime broadcast</span><span class="tl-feat">asana_section_name</span><span class="tl-feat">Webhook GID audit</span>
+          <span class="tl-feat">Dynasend + ThreatMate onboarded</span>
+        </div>
+      </div>
+
+      <div class="timeline-item">
+        <div class="timeline-dot active"></div>
+        <div class="tl-ver" style="color:var(--blue);">v1.2 — In Planning</div>
+        <div class="tl-name">Gwen: Meeting Processing Layer</div>
+        <div class="tl-desc">Gwen enters the pipeline. AI-powered extraction of structured work from meeting transcripts, with semantic dedup and human approval gates before anything goes live in production.</div>
+        <div class="tl-features">
+          <span class="tl-feat" style="border-color:var(--blue); color:var(--blue);">Gwen integration</span>
+          <span class="tl-feat" style="border-color:var(--blue); color:var(--blue);">gwen_task_candidates</span>
+          <span class="tl-feat" style="border-color:var(--blue); color:var(--blue);">Semantic dedup</span>
+          <span class="tl-feat" style="border-color:var(--blue); color:var(--blue);">Approval queue UI</span>
+          <span class="tl-feat" style="border-color:var(--blue); color:var(--blue);">Decision tracking</span>
+          <span class="tl-feat" style="border-color:var(--blue); color:var(--blue);">Blocker tracking</span>
+        </div>
+      </div>
+
+      <div class="timeline-item">
+        <div class="timeline-dot future"></div>
+        <div class="tl-ver" style="color:var(--purple);">v1.3 — Planned</div>
+        <div class="tl-name">Gwen: AI Orchestration</div>
+        <div class="tl-desc">Gwen becomes the central intelligence layer. Context memory across meetings and engagements, Claude-powered deliverable generation, and autonomous workflows with approval gates throughout.</div>
+        <div class="tl-features">
+          <span class="tl-feat" style="border-color:var(--purple); color:var(--purple);">Context memory</span>
+          <span class="tl-feat" style="border-color:var(--purple); color:var(--purple);">Claude deliverables</span>
+          <span class="tl-feat" style="border-color:var(--purple); color:var(--purple);">deliverables table</span>
+          <span class="tl-feat" style="border-color:var(--purple); color:var(--purple);">Client pref memory</span>
+          <span class="tl-feat" style="border-color:var(--purple); color:var(--purple);">Autonomous workflows</span>
+          <span class="tl-feat" style="border-color:var(--purple); color:var(--purple);">Engagement hierarchy</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Key design principles -->
+    <div>
+      <div class="card mb-20">
+        <h3>Design Principles</h3>
+        <div style="display:flex; flex-direction:column; gap:10px;">
+          <div style="padding:12px; background:var(--surface); border-radius:var(--radius-sm); border-left:3px solid var(--blue);">
+            <div style="font-size:12px; font-weight:700; margin-bottom:3px;">Supabase is the source of truth</div>
+            <div style="font-size:12px; color:var(--muted);">Asana is the operational sync layer. Every design decision assumes Supabase owns the data.</div>
+          </div>
+          <div style="padding:12px; background:var(--surface); border-radius:var(--radius-sm); border-left:3px solid var(--orange);">
+            <div style="font-size:12px; font-weight:700; margin-bottom:3px;">Human approval at every AI boundary</div>
+            <div style="font-size:12px; color:var(--muted);">Gwen never writes to production tables without a human sign-off. No exceptions in v1.2 or v1.3.</div>
+          </div>
+          <div style="padding:12px; background:var(--surface); border-radius:var(--radius-sm); border-left:3px solid var(--purple);">
+            <div style="font-size:12px; font-weight:700; margin-bottom:3px;">Additive migration only</div>
+            <div style="font-size:12px; color:var(--muted);">New tables extend the existing schema. The current portal keeps working through every version transition.</div>
+          </div>
+          <div style="padding:12px; background:var(--surface); border-radius:var(--radius-sm); border-left:3px solid var(--green);">
+            <div style="font-size:12px; font-weight:700; margin-bottom:3px;">RLS enforced at every layer</div>
+            <div style="font-size:12px; color:var(--muted);">Every new table in v1.2 and v1.3 gets RLS from day one. Client isolation is non-negotiable.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Migration Strategy</h3>
+        <table class="data-table">
+          <thead><tr><th>Phase</th><th>What happens</th><th>Portal impact</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><span class="badge badge-green">Phase 1</span></td>
+              <td>PMS tables added alongside Asana sync — dual-write</td>
+              <td>None — existing queries unchanged</td>
+            </tr>
+            <tr>
+              <td><span class="badge badge-blue">Phase 2</span></td>
+              <td>Portal queries switch from Asana-synced tasks to PMS tasks</td>
+              <td>Zero downtime cutover</td>
+            </tr>
+            <tr>
+              <td><span class="badge badge-purple">Phase 3</span></td>
+              <td>Asana becomes optional — webhooks write to PMS, not tasks directly</td>
+              <td>Richer data, same portal interface</td>
+            </tr>
+            <tr>
+              <td><span class="badge badge-orange">Phase 4</span></td>
+              <td>Asana removed from critical path</td>
+              <td>PMS is now the complete operational system</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<script>
+function show(id, btn) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'))
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'))
+  document.getElementById(id).classList.add('active')
+  btn.classList.add('active')
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+}
+</script>
+</body>
+</html>
