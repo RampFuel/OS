@@ -1,0 +1,1255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RampFuel OS: Architecture &amp; Roadmap</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:          #121434;
+  --surface:     #181b42;
+  --card:        #1e2250;
+  --border:      #282d62;
+  --border2:     #343970;
+  --text:        #E2E8F0;
+  --muted:       #64748B;
+  --dim:         #94A3B8;
+  --blue:        #4F8EF7;
+  --blue-dim:    #1E3A5F;
+  --orange:      #FF6B35;
+  --orange-dim:  #3D1C0D;
+  --purple:      #A78BFA;
+  --purple-dim:  #2D1F5E;
+  --green:       #34D399;
+  --green-dim:   #0D3326;
+  --red:         #F87171;
+  --red-dim:     #3B1010;
+  --yellow:      #FBBF24;
+  --yellow-dim:  #3D2A00;
+  --radius:      10px;
+  --radius-sm:   6px;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Inter', sans-serif;
+  min-height: 100vh;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* ── Header ─────────────────────────────────────────── */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 32px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.logo { display: flex; align-items: center; gap: 12px; }
+.logo-mark {
+  width: 36px; height: 36px; border-radius: 8px;
+  background: linear-gradient(135deg, var(--orange) 0%, #FF3B00 100%);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 16px; color: #fff;
+}
+.logo-text { font-size: 16px; font-weight: 700; letter-spacing: -0.3px; }
+.logo-sub  { font-size: 11px; color: var(--muted); margin-top: 1px; font-weight: 400; }
+.header-meta { font-size: 12px; color: var(--muted); text-align: right; }
+.header-meta strong { color: var(--dim); }
+
+/* ── Nav tabs ────────────────────────────────────────── */
+.nav {
+  display: flex;
+  gap: 4px;
+  padding: 0 32px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+}
+.nav-btn {
+  padding: 12px 18px;
+  background: none; border: none; cursor: pointer;
+  font-size: 13px; font-weight: 500;
+  color: var(--muted);
+  border-bottom: 2px solid transparent;
+  white-space: nowrap;
+  transition: all .2s;
+  font-family: inherit;
+}
+.nav-btn:hover { color: var(--dim); }
+.nav-btn.active { color: var(--blue); border-bottom-color: var(--blue); }
+
+/* ── Content ────────────────────────────────────────── */
+.content { padding: 36px 32px; max-width: 1200px; margin: 0 auto; }
+.section { display: none; }
+.section.active { display: block; }
+
+/* ── Typography ─────────────────────────────────────── */
+.section-title {
+  font-size: 26px; font-weight: 800;
+  letter-spacing: -0.5px; margin-bottom: 6px;
+}
+.section-sub { font-size: 14px; color: var(--muted); margin-bottom: 32px; }
+h3 { font-size: 15px; font-weight: 700; margin-bottom: 14px; color: var(--dim); letter-spacing: -0.2px; }
+h4 { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .7px; color: var(--muted); margin-bottom: 10px; }
+
+/* ── Grid helpers ────────────────────────────────────── */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+
+/* ── Cards ───────────────────────────────────────────── */
+.card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 20px;
+}
+.card-lg { padding: 24px; }
+.card-sm { padding: 14px 16px; }
+
+/* ── Stat cards ──────────────────────────────────────── */
+.stat-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 18px 20px;
+  display: flex; flex-direction: column; gap: 4px;
+}
+.stat-num { font-size: 32px; font-weight: 800; letter-spacing: -1px; }
+.stat-label { font-size: 12px; color: var(--muted); }
+.stat-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+/* ── Badges / pills ──────────────────────────────────── */
+.badge {
+  display: inline-block; padding: 2px 8px; border-radius: 20px;
+  font-size: 11px; font-weight: 600; letter-spacing: .3px;
+}
+.badge-blue   { background: var(--blue-dim);   color: var(--blue); }
+.badge-orange { background: var(--orange-dim); color: var(--orange); }
+.badge-purple { background: var(--purple-dim); color: var(--purple); }
+.badge-green  { background: var(--green-dim);  color: var(--green); }
+.badge-yellow { background: var(--yellow-dim); color: var(--yellow); }
+.badge-red    { background: var(--red-dim);    color: var(--red); }
+
+/* ── Flow diagram ────────────────────────────────────── */
+.flow {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  overflow-x: auto;
+  padding: 8px 0;
+}
+.flow-node {
+  flex-shrink: 0;
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 14px 16px;
+  text-align: center; min-width: 120px;
+  position: relative;
+}
+.flow-node .node-icon { font-size: 22px; margin-bottom: 6px; }
+.flow-node .node-label { font-size: 12px; font-weight: 600; color: var(--text); }
+.flow-node .node-sub { font-size: 10px; color: var(--muted); margin-top: 2px; }
+.flow-arrow {
+  flex-shrink: 0;
+  display: flex; align-items: center;
+  width: 44px; position: relative;
+}
+.flow-arrow::before {
+  content: '';
+  position: absolute; left: 0; right: 8px; top: 50%;
+  height: 1px; background: var(--border2);
+  transform: translateY(-50%);
+}
+.flow-arrow::after {
+  content: '';
+  position: absolute; right: 2px; top: 50%;
+  transform: translateY(-50%);
+  border: 5px solid transparent;
+  border-left-color: var(--border2);
+  border-right: none;
+}
+.flow-arrow.animated::before {
+  background: linear-gradient(90deg, var(--blue-dim), var(--blue));
+  animation: flowPulse 1.8s ease-in-out infinite;
+}
+.flow-arrow.animated::after { border-left-color: var(--blue); }
+@keyframes flowPulse {
+  0%, 100% { opacity: .4; }
+  50%       { opacity: 1; }
+}
+
+/* ── Security tiers ──────────────────────────────────── */
+.security-tier {
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  padding: 20px 24px;
+  margin-bottom: 14px;
+  position: relative;
+  overflow: hidden;
+}
+.security-tier::before {
+  content: '';
+  position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
+}
+.tier-1::before { background: var(--orange); }
+.tier-2::before { background: var(--blue); }
+.tier-3::before { background: var(--purple); }
+.tier-label {
+  font-size: 11px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .8px; margin-bottom: 6px;
+}
+.tier-1 .tier-label { color: var(--orange); }
+.tier-2 .tier-label { color: var(--blue); }
+.tier-3 .tier-label { color: var(--purple); }
+.tier-title { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+
+/* ── Version comparison ───────────────────────────────── */
+.version-tag {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 12px; border-radius: 20px;
+  font-size: 12px; font-weight: 700;
+  margin-bottom: 20px;
+}
+.ver-current { background: var(--green-dim); color: var(--green); }
+.ver-12      { background: var(--blue-dim); color: var(--blue); }
+.ver-13      { background: var(--purple-dim); color: var(--purple); }
+
+/* ── Component blocks ────────────────────────────────── */
+.component-block {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.component-header {
+  padding: 10px 14px;
+  font-size: 12px; font-weight: 700;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 8px;
+}
+.component-body { padding: 14px; }
+.component-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 7px 0; border-bottom: 1px solid var(--border);
+  font-size: 12px;
+}
+.component-row:last-child { border-bottom: none; }
+.component-key { color: var(--muted); }
+.component-val { color: var(--text); font-weight: 500; font-family: 'JetBrains Mono', monospace; font-size: 11px; }
+
+/* ── Gwen node (special) ─────────────────────────────── */
+.gwen-node {
+  background: var(--purple-dim); border: 1px solid var(--purple);
+  border-radius: var(--radius); padding: 14px 16px;
+  text-align: center; min-width: 130px; flex-shrink: 0;
+}
+.gwen-node .node-icon { font-size: 24px; margin-bottom: 6px; }
+.gwen-node .node-label { font-size: 12px; font-weight: 700; color: var(--purple); }
+.gwen-node .node-sub { font-size: 10px; color: rgba(167,139,250,.6); margin-top: 3px; }
+
+/* ── Approval queue ──────────────────────────────────── */
+.approver-list {
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;
+  margin-top: 12px;
+}
+.approver {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 10px 12px;
+}
+.approver-avatar {
+  width: 32px; height: 32px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 800; flex-shrink: 0;
+}
+.approver-name  { font-size: 13px; font-weight: 600; }
+.approver-role  { font-size: 11px; color: var(--muted); }
+
+/* ── Roadmap ─────────────────────────────────────────── */
+.timeline {
+  position: relative;
+  padding-left: 28px;
+}
+.timeline::before {
+  content: '';
+  position: absolute; left: 8px; top: 12px; bottom: 12px;
+  width: 2px; background: var(--border2);
+}
+.timeline-item {
+  position: relative; margin-bottom: 28px;
+}
+.timeline-dot {
+  position: absolute; left: -24px; top: 4px;
+  width: 16px; height: 16px; border-radius: 50%;
+  border: 2px solid var(--border);
+  background: var(--bg);
+  display: flex; align-items: center; justify-content: center;
+}
+.timeline-dot.done   { background: var(--green); border-color: var(--green); }
+.timeline-dot.active { background: var(--blue);  border-color: var(--blue); box-shadow: 0 0 8px var(--blue); }
+.timeline-dot.future { background: var(--surface); border-color: var(--border2); }
+.tl-ver  { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .7px; margin-bottom: 4px; }
+.tl-name { font-size: 16px; font-weight: 700; margin-bottom: 6px; letter-spacing: -.3px; }
+.tl-desc { font-size: 13px; color: var(--dim); margin-bottom: 12px; }
+.tl-features { display: flex; flex-wrap: wrap; gap: 6px; }
+.tl-feat {
+  font-size: 11px; padding: 3px 10px; border-radius: 20px;
+  background: var(--surface); border: 1px solid var(--border);
+  color: var(--dim);
+}
+
+/* ── Tables ──────────────────────────────────────────── */
+.data-table { width: 100%; border-collapse: collapse; }
+.data-table th, .data-table td {
+  padding: 10px 14px; text-align: left;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+.data-table th { color: var(--muted); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: .5px; background: var(--surface); }
+.data-table tr:last-child td { border-bottom: none; }
+.data-table tr:hover td { background: rgba(255,255,255,.02); }
+
+/* ── Dot live indicator ──────────────────────────────── */
+.live-dot {
+  display: inline-block; width: 7px; height: 7px;
+  border-radius: 50%; background: var(--green);
+  box-shadow: 0 0 6px var(--green);
+  animation: livePulse 2s ease-in-out infinite;
+  margin-right: 5px;
+}
+@keyframes livePulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: .3; }
+}
+
+/* ── New component highlight ─────────────────────────── */
+.new-component {
+  background: var(--blue-dim); border: 1px solid var(--blue);
+  border-radius: var(--radius); padding: 14px 16px;
+  text-align: center; min-width: 120px; flex-shrink: 0;
+}
+.new-component .node-label { font-size: 12px; font-weight: 700; color: var(--blue); }
+.new-component .node-sub   { font-size: 10px; color: rgba(79,142,247,.6); margin-top: 3px; }
+
+/* ── Divider ─────────────────────────────────────────── */
+.divider { height: 1px; background: var(--border); margin: 28px 0; }
+
+/* ── Utils ───────────────────────────────────────────── */
+.mb-4  { margin-bottom: 4px; }
+.mb-8  { margin-bottom: 8px; }
+.mb-16 { margin-bottom: 16px; }
+.mb-24 { margin-bottom: 24px; }
+.mb-32 { margin-bottom: 32px; }
+.mt-16 { margin-top: 16px; }
+.mt-24 { margin-top: 24px; }
+.text-muted { color: var(--muted); }
+.text-dim   { color: var(--dim); }
+.text-green { color: var(--green); }
+.text-blue  { color: var(--blue); }
+.text-orange { color: var(--orange); }
+.text-purple { color: var(--purple); }
+.mono { font-family: 'JetBrains Mono', monospace; font-size: 11px; }
+.fw-600 { font-weight: 600; }
+.fw-700 { font-weight: 700; }
+</style>
+</head>
+<body>
+
+<!-- ── Header ── -->
+<header class="header">
+  <div class="logo">
+    <img src="data:image/png;base64,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" alt="RampFuel" style="height:52px; width:auto; display:block;">
+    <div>
+      <div class="logo-text">OS Platform</div>
+      <div class="logo-sub">Architecture &amp; Roadmap</div>
+    </div>
+  </div>
+  <div class="header-meta">
+    <strong>Team Workshop</strong><br>June 26, 2026
+  </div>
+</header>
+
+<!-- ── Nav ── -->
+<nav class="nav">
+  <button class="nav-btn active" onclick="show('overview',this)">Overview</button>
+  <button class="nav-btn" onclick="show('architecture',this)">Current Architecture</button>
+  <button class="nav-btn" onclick="show('security',this)">Security Model</button>
+  <button class="nav-btn" onclick="show('v12',this)">v1.2: Gwen Meeting Layer</button>
+  <button class="nav-btn" onclick="show('v13',this)">v1.3: AI Orchestration</button>
+  <button class="nav-btn" onclick="show('roadmap',this)">Roadmap</button>
+</nav>
+
+<!-- ────────────────────────────────────────────────────
+     SECTION 1: OVERVIEW
+──────────────────────────────────────────────────────── -->
+<main class="content">
+
+<section id="overview" class="section active">
+  <div class="section-title">RampFuel OS: System Overview</div>
+  <div class="section-sub">A unified client engagement operating system built on Supabase, Asana, and Cloudflare, with AI layers incoming in v1.2 and v1.3.</div>
+
+  <!-- Live stats -->
+  <div class="grid-4 mb-32">
+    <div class="stat-card">
+      <div class="stat-num text-green">11</div>
+      <div class="stat-label">Active Client Portals</div>
+      <div class="stat-sub"><span class="live-dot"></span>Live</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num text-blue">15</div>
+      <div class="stat-label">Asana Webhooks</div>
+      <div class="stat-sub">All GIDs registered</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num text-orange">650+</div>
+      <div class="stat-label">Tasks Synced</div>
+      <div class="stat-sub">Across 14 projects</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num text-purple">22+</div>
+      <div class="stat-label">Edge Functions</div>
+      <div class="stat-sub">Deployed on Supabase</div>
+    </div>
+  </div>
+
+  <!-- Stack summary -->
+  <div class="grid-2 mb-24">
+    <div class="card card-lg">
+      <h3>Tech Stack</h3>
+      <table class="data-table">
+        <thead><tr><th>Layer</th><th>Technology</th><th>Role</th></tr></thead>
+        <tbody>
+          <tr><td>Frontend</td><td><span class="badge badge-orange">HTML/JS</span></td><td>Single-file client portal</td></tr>
+          <tr><td>Database</td><td><span class="badge badge-blue">Supabase Postgres</span></td><td>Single source of truth</td></tr>
+          <tr><td>Auth</td><td><span class="badge badge-blue">Supabase Auth</span></td><td>Domain-routed access</td></tr>
+          <tr><td>Security</td><td><span class="badge badge-green">Row Level Security</span></td><td>DB-enforced isolation</td></tr>
+          <tr><td>Sync gateway</td><td><span class="badge badge-yellow">Cloudflare Worker</span></td><td>HMAC validation</td></tr>
+          <tr><td>Project mgmt</td><td><span class="badge badge-orange">Asana</span></td><td>Operational task source</td></tr>
+          <tr><td>Meetings</td><td><span class="badge badge-purple">Fellow.app</span></td><td>Meeting notes pipeline</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card card-lg">
+      <h3>Active Clients</h3>
+      <table class="data-table">
+        <thead><tr><th>Client</th><th>Tasks</th><th>Sub-tabs</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td>Bumblebee</td><td>30</td><td>None</td><td><span class="badge badge-green">Active</span></td></tr>
+          <tr><td>Cloud Contracts 365</td><td>58</td><td>None</td><td><span class="badge badge-green">Active</span></td></tr>
+          <tr><td>Cork</td><td>36</td><td>None</td><td><span class="badge badge-green">Active</span></td></tr>
+          <tr><td>Dynasend</td><td>95</td><td>FUEL Plan</td><td><span class="badge badge-green">Active</span></td></tr>
+          <tr><td>Evo Security</td><td>29</td><td>None</td><td><span class="badge badge-green">Active</span></td></tr>
+          <tr><td>GoTo Technologies</td><td>51</td><td>None</td><td><span class="badge badge-green">Active</span></td></tr>
+          <tr><td>HelpGhost</td><td>30</td><td>None</td><td><span class="badge badge-green">Active</span></td></tr>
+          <tr><td>Kalibr8</td><td>37</td><td>None</td><td><span class="badge badge-green">Active</span></td></tr>
+          <tr><td>Lexful</td><td>73</td><td>HubSpot Overhaul</td><td><span class="badge badge-green">Active</span></td></tr>
+          <tr><td>Plansom</td><td>65</td><td>None</td><td><span class="badge badge-green">Active</span></td></tr>
+          <tr><td>ScalePad</td><td>71</td><td>None</td><td><span class="badge badge-green">Active</span></td></tr>
+          <tr><td>ThreatMate</td><td>14</td><td>None</td><td><span class="badge badge-green">Active</span></td></tr>
+          <tr><td>NuroBlox</td><td>30</td><td>None</td><td><span class="badge badge-yellow">Inactive</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Version roadmap pills -->
+  <div class="card">
+    <h3>Version Status</h3>
+    <div style="display:flex; gap:16px; flex-wrap:wrap;">
+      <div style="flex:1;min-width:180px; padding:16px; background:var(--surface); border-radius:var(--radius); border:1px solid var(--green);">
+        <div style="font-size:11px;font-weight:700;color:var(--green);margin-bottom:4px;">MVP 1.0 / 1.1: LIVE</div>
+        <div style="font-size:13px;font-weight:600;margin-bottom:6px;">Core Portal + Sync</div>
+        <div style="font-size:12px;color:var(--muted);">Asana sync, client portals, RLS, realtime updates, multi-project tabs</div>
+      </div>
+      <div style="flex:1;min-width:180px; padding:16px; background:var(--surface); border-radius:var(--radius); border:1px solid var(--blue);">
+        <div style="font-size:11px;font-weight:700;color:var(--blue);margin-bottom:4px;">v1.2: UPCOMING</div>
+        <div style="font-size:13px;font-weight:600;margin-bottom:6px;">Gwen: Meeting Layer</div>
+        <div style="font-size:12px;color:var(--muted);">AI-powered meeting processing, task deduplication, human approval queue</div>
+      </div>
+      <div style="flex:1;min-width:180px; padding:16px; background:var(--surface); border-radius:var(--radius); border:1px solid var(--purple);">
+        <div style="font-size:11px;font-weight:700;color:var(--purple);margin-bottom:4px;">v1.3: PLANNED</div>
+        <div style="font-size:13px;font-weight:600;margin-bottom:6px;">Gwen: AI Orchestration</div>
+        <div style="font-size:12px;color:var(--muted);">Deliverable generation, context memory, autonomous workflows with approval gates</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ────────────────────────────────────────────────────
+     SECTION 2: ARCHITECTURE
+──────────────────────────────────────────────────────── -->
+<section id="architecture" class="section">
+  <div class="section-title">Current Architecture</div>
+  <div class="section-sub">How data moves from Fellow.app meetings and Asana tasks into the client portal, in real time.</div>
+
+  <!-- Data flow diagram -->
+  <div class="card card-lg mb-24">
+    <h4>Data Flow: End to End</h4>
+    <div class="flow" style="padding:12px 0;">
+      <div class="flow-node">
+        <div class="node-icon">📝</div>
+        <div class="node-label">Fellow.app</div>
+        <div class="node-sub">Meeting notes</div>
+      </div>
+      <div class="flow-arrow animated"></div>
+      <div class="flow-node">
+        <div class="node-icon">📋</div>
+        <div class="node-label">Asana</div>
+        <div class="node-sub">14 projects / 15 webhooks</div>
+      </div>
+      <div class="flow-arrow animated"></div>
+      <div class="flow-node" style="border-color:var(--yellow); background:var(--yellow-dim);">
+        <div class="node-icon">⚡</div>
+        <div class="node-label" style="color:var(--yellow);">Cloudflare Worker</div>
+        <div class="node-sub">HMAC validation</div>
+      </div>
+      <div class="flow-arrow animated"></div>
+      <div class="flow-node" style="border-color:var(--blue); background:var(--blue-dim);">
+        <div class="node-icon">🔧</div>
+        <div class="node-label" style="color:var(--blue);">asana-sync</div>
+        <div class="node-sub">Edge Fn v22</div>
+      </div>
+      <div class="flow-arrow animated"></div>
+      <div class="flow-node" style="border-color:var(--green); background:var(--green-dim);">
+        <div class="node-icon">🗄️</div>
+        <div class="node-label" style="color:var(--green);">Supabase DB</div>
+        <div class="node-sub">PostgreSQL + RLS</div>
+      </div>
+      <div class="flow-arrow animated"></div>
+      <div class="flow-node">
+        <div class="node-icon">🖥️</div>
+        <div class="node-label">Client Portal</div>
+        <div class="node-sub">11 active clients</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Component details -->
+  <div class="grid-2 mb-24">
+    <div>
+      <h3>Asana Layer</h3>
+      <div class="component-block mb-16">
+        <div class="component-header" style="background:var(--orange-dim); color:var(--orange);">
+          📋 Asana Projects
+        </div>
+        <div class="component-body">
+          <div class="component-row">
+            <span class="component-key">Client projects</span>
+            <span class="component-val">12 active</span>
+          </div>
+          <div class="component-row">
+            <span class="component-key">Webhooks registered</span>
+            <span class="component-val">15 (all GIDs stored)</span>
+          </div>
+          <div class="component-row">
+            <span class="component-key">Section convention (recaps)</span>
+            <span class="component-val">📅 Weekly Sync</span>
+          </div>
+          <div class="component-row">
+            <span class="component-key">Section convention (action items)</span>
+            <span class="component-val">📌 Weekly Sync Action items</span>
+          </div>
+          <div class="component-row">
+            <span class="component-key">Status custom field GID</span>
+            <span class="component-val">1214062154293825</span>
+          </div>
+        </div>
+      </div>
+
+      <h3>Sync Gateway</h3>
+      <div class="component-block">
+        <div class="component-header" style="background:var(--yellow-dim); color:var(--yellow);">
+          ⚡ Cloudflare Worker
+        </div>
+        <div class="component-body">
+          <div class="component-row">
+            <span class="component-key">Worker URL</span>
+            <span class="component-val">asana-portal-sync.workers.dev</span>
+          </div>
+          <div class="component-row">
+            <span class="component-key">Validation method</span>
+            <span class="component-val">HMAC-SHA256 signature</span>
+          </div>
+          <div class="component-row">
+            <span class="component-key">Secret store</span>
+            <span class="component-val">asana_webhook_config</span>
+          </div>
+          <div class="component-row">
+            <span class="component-key">On valid event</span>
+            <span class="component-val">Calls asana-sync edge fn</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <h3>Supabase Layer</h3>
+      <div class="component-block mb-16">
+        <div class="component-header" style="background:var(--green-dim); color:var(--green);">
+          🗄️ Database Schema (key tables)
+        </div>
+        <div class="component-body">
+          <div class="component-row">
+            <span class="component-key">clients</span>
+            <span class="component-val">13 rows</span>
+          </div>
+          <div class="component-row">
+            <span class="component-key">projects</span>
+            <span class="component-val">15 rows (incl. sub-projects)</span>
+          </div>
+          <div class="component-row">
+            <span class="component-key">tasks</span>
+            <span class="component-val">650+ rows</span>
+          </div>
+          <div class="component-row">
+            <span class="component-key">task_comments</span>
+            <span class="component-val">Client collaboration</span>
+          </div>
+          <div class="component-row">
+            <span class="component-key">weekly_updates</span>
+            <span class="component-val">Executive summaries</span>
+          </div>
+          <div class="component-row">
+            <span class="component-key">client_requests</span>
+            <span class="component-val">Portal request form</span>
+          </div>
+          <div class="component-row">
+            <span class="component-key">asana_webhook_config</span>
+            <span class="component-val">15 rows / all GIDs stored</span>
+          </div>
+        </div>
+      </div>
+
+      <h3>Portal Features</h3>
+      <div class="component-block">
+        <div class="component-header" style="background:var(--blue-dim); color:var(--blue);">
+          🖥️ Client Portal (portal.html)
+        </div>
+        <div class="component-body">
+          <div class="component-row"><span class="component-key">Dashboard</span><span class="component-val">KPI + recent activity</span></div>
+          <div class="component-row"><span class="component-key">My Tasks</span><span class="component-val">Client-assigned tasks</span></div>
+          <div class="component-row"><span class="component-key">All Tasks</span><span class="component-val">Full project board</span></div>
+          <div class="component-row"><span class="component-key">Meetings</span><span class="component-val">Fellow.app recaps</span></div>
+          <div class="component-row"><span class="component-key">Files</span><span class="component-val">Egnyte integration</span></div>
+          <div class="component-row"><span class="component-key">Sub-project tabs</span><span class="component-val">Dynamic per client</span></div>
+          <div class="component-row"><span class="component-key">Realtime sync</span><span class="component-val">Broadcast + 15s poll</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Portal routing logic -->
+  <div class="card">
+    <h3>Portal Section Routing Logic</h3>
+    <table class="data-table">
+      <thead><tr><th>Asana Section Name</th><th>Portal Tab</th><th>Logic</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><span class="mono">📌 Weekly Sync Action items</span></td>
+          <td>All Tasks</td>
+          <td>Exact match on section name constant</td>
+        </tr>
+        <tr>
+          <td><span class="mono">📅 Weekly Sync</span> / <span class="mono">📅 Weekly sync</span></td>
+          <td>Meetings</td>
+          <td><span class="mono">asana_section_name ILIKE '📅%'</span></td>
+        </tr>
+        <tr>
+          <td>All other sections (phases, milestones)</td>
+          <td>All Tasks</td>
+          <td>Neither of the above match</td>
+        </tr>
+        <tr>
+          <td>Sub-project tasks (is_primary = false)</td>
+          <td>Dynamic tab (tab_label)</td>
+          <td>Separate project_id query per tab</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ────────────────────────────────────────────────────
+     SECTION 3: SECURITY
+──────────────────────────────────────────────────────── -->
+<section id="security" class="section">
+  <div class="section-title">Security Model</div>
+  <div class="section-sub">Three independent security layers: network, authentication, and data. A breach of one layer does not compromise the others.</div>
+
+  <div class="grid-2 mb-24">
+    <div>
+      <div class="security-tier tier-1 mb-16">
+        <div class="tier-label">Layer 1: Network</div>
+        <div class="tier-title">Cloudflare HMAC Validation</div>
+        <div style="font-size:13px; color:var(--dim); margin-bottom:14px;">
+          Every Asana webhook request is validated before reaching Supabase. Forged or replayed requests are rejected at the Cloudflare edge.
+        </div>
+        <table class="data-table">
+          <tr><td class="component-key">Method</td><td>HMAC-SHA256 signature on request body</td></tr>
+          <tr><td class="component-key">Secret per project</td><td>Stored in <span class="mono">asana_webhook_config.hook_secret</span></td></tr>
+          <tr><td class="component-key">Failure response</td><td>HTTP 401 (request dropped)</td></tr>
+          <tr><td class="component-key">Coverage</td><td>All 15 registered Asana webhooks</td></tr>
+        </table>
+      </div>
+
+      <div class="security-tier tier-2">
+        <div class="tier-label">Layer 2: Authentication</div>
+        <div class="tier-title">Supabase Auth + Domain Routing</div>
+        <div style="font-size:13px; color:var(--dim); margin-bottom:14px;">
+          Email-based auth with automatic role assignment. No manual role configuration; domain suffix determines access tier.
+        </div>
+        <table class="data-table">
+          <tr><td class="component-key">Admin access</td><td><span class="mono">@rampfuel.com</span>: full cross-client access</td></tr>
+          <tr><td class="component-key">Client access</td><td>All other emails: scoped to their client only</td></tr>
+          <tr><td class="component-key">Client linking</td><td><span class="mono">client_users</span> table (auth_user_id → client_id)</td></tr>
+          <tr><td class="component-key">Admin users</td><td>david, jared, cole, cami @rampfuel.com</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div>
+      <div class="security-tier tier-3" style="height:100%;">
+        <div class="tier-label">Layer 3: Data</div>
+        <div class="tier-title">Row Level Security (RLS)</div>
+        <div style="font-size:13px; color:var(--dim); margin-bottom:14px;">
+          Enforced at the PostgreSQL layer, not the application layer. Even if portal code had a bug, cross-client data leaks are impossible.
+        </div>
+
+        <h4 style="margin-top:8px;">Key Policies</h4>
+        <div class="component-block mb-14">
+          <div class="component-header" style="color:var(--purple);">tasks: Client read policy</div>
+          <div class="component-body" style="background:var(--bg);">
+            <code style="font-size:11px; color:var(--dim); line-height:1.8; display:block;">
+              EXISTS (<br>
+              &nbsp;&nbsp;SELECT 1 FROM projects p<br>
+              &nbsp;&nbsp;JOIN client_users cu ON cu.client_id = p.client_id<br>
+              &nbsp;&nbsp;WHERE p.id = tasks.project_id<br>
+              &nbsp;&nbsp;AND cu.auth_user_id = auth.uid()<br>
+              )
+            </code>
+          </div>
+        </div>
+
+        <div class="component-block">
+          <div class="component-header" style="color:var(--purple);">All tables: RampFuel admin policy</div>
+          <div class="component-body" style="background:var(--bg);">
+            <code style="font-size:11px; color:var(--dim); line-height:1.8; display:block;">
+              auth.email() ILIKE '%@rampfuel.com'
+            </code>
+          </div>
+        </div>
+
+        <div style="margin-top:16px; padding:14px; background:var(--green-dim); border-radius:var(--radius); border:1px solid var(--green);">
+          <div style="font-size:12px; font-weight:700; color:var(--green); margin-bottom:6px;">Key guarantee</div>
+          <div style="font-size:12px; color:var(--dim);">
+            A Lexful user querying the <span class="mono">tasks</span> table will only ever receive rows where <span class="mono">projects.client_id = Lexful</span>, even via direct API calls. The database enforces this, not the portal.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Security summary table -->
+  <div class="card">
+    <h3>What Each Layer Protects Against</h3>
+    <table class="data-table">
+      <thead><tr><th>Threat</th><th>Blocked By</th><th>Layer</th></tr></thead>
+      <tbody>
+        <tr><td>Spoofed Asana webhook from third party</td><td>HMAC signature mismatch</td><td><span class="badge badge-orange">Layer 1</span></td></tr>
+        <tr><td>Replayed or tampered webhook payload</td><td>HMAC signature mismatch</td><td><span class="badge badge-orange">Layer 1</span></td></tr>
+        <tr><td>Unauthenticated portal access</td><td>Supabase Auth session check</td><td><span class="badge badge-blue">Layer 2</span></td></tr>
+        <tr><td>Client accessing another client's portal</td><td>Auth domain routing + RLS</td><td><span class="badge badge-blue">Layer 2</span> <span class="badge badge-purple">Layer 3</span></td></tr>
+        <tr><td>Direct Supabase API call to steal data</td><td>RLS policy (enforced in DB)</td><td><span class="badge badge-purple">Layer 3</span></td></tr>
+        <tr><td>Portal code bug leaking cross-client data</td><td>RLS policy (not bypassable)</td><td><span class="badge badge-purple">Layer 3</span></td></tr>
+        <tr><td>Sub-project data visible to wrong client</td><td>project.client_id join in RLS</td><td><span class="badge badge-purple">Layer 3</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ────────────────────────────────────────────────────
+     SECTION 4: v1.2 — GWEN MEETING LAYER
+──────────────────────────────────────────────────────── -->
+<section id="v12" class="section">
+  <div class="version-tag ver-12">v1.2: Upcoming</div>
+  <div class="section-title">Gwen: Meeting Processing Layer</div>
+  <div class="section-sub">Gwen enters the pipeline between Fellow.app and the tasks table, ingesting meeting transcripts, extracting structured work, deduplicating against existing tasks, and routing candidates to a human approval queue before anything goes live.</div>
+
+  <!-- What changes -->
+  <div class="card mb-24" style="border-color:var(--blue);">
+    <h4>What changes from current architecture</h4>
+    <div style="display:flex; gap:24px;">
+      <div style="flex:1;">
+        <div style="font-size:12px; font-weight:700; color:var(--muted); margin-bottom:8px;">BEFORE (current)</div>
+        <div style="font-size:13px; color:var(--dim);">Fellow.app writes action items directly to Asana as task notes. Asana webhooks sync them to Supabase. No processing, no deduplication, no intelligence; the full volume lands in the DB and portal as-is. Jared and David interpret everything manually.</div>
+      </div>
+      <div style="width:1px; background:var(--border);"></div>
+      <div style="flex:1;">
+        <div style="font-size:12px; font-weight:700; color:var(--blue); margin-bottom:8px;">AFTER (v1.2)</div>
+        <div style="font-size:13px; color:var(--dim);">Gwen intercepts the meeting output, runs semantic dedup against existing open tasks, and stages candidates for human review. Nothing writes to production tasks without an approver signing off. Jared and David review decisions; they don't make them from scratch.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- New flow -->
+  <div class="card card-lg mb-24">
+    <h4>v1.2 Data Flow</h4>
+    <div class="flow" style="padding:12px 0; flex-wrap:wrap; gap:0;">
+      <div class="flow-node">
+        <div class="node-icon">📝</div>
+        <div class="node-label">Fellow.app</div>
+        <div class="node-sub">Meeting transcript / summary</div>
+      </div>
+      <div class="flow-arrow animated"></div>
+      <div class="gwen-node">
+        <div class="node-icon">🤖</div>
+        <div class="node-label">Gwen</div>
+        <div class="node-sub">Processing engine</div>
+      </div>
+      <div class="flow-arrow animated" style="--arrow-color:var(--purple)"></div>
+      <div class="flow-node" style="border-color:var(--blue); background:var(--blue-dim);">
+        <div class="node-icon">🔍</div>
+        <div class="node-label" style="color:var(--blue);">Dedup Check</div>
+        <div class="node-sub">vs. open tasks</div>
+      </div>
+      <div class="flow-arrow animated"></div>
+      <div class="new-component">
+        <div class="node-icon">📥</div>
+        <div class="node-label">Candidates Table</div>
+        <div class="node-sub">Staged (not live)</div>
+      </div>
+      <div class="flow-arrow animated"></div>
+      <div class="flow-node" style="border-color:var(--orange); background:var(--orange-dim);">
+        <div class="node-icon">👥</div>
+        <div class="node-label" style="color:var(--orange);">Approval Queue</div>
+        <div class="node-sub">Human review</div>
+      </div>
+      <div class="flow-arrow animated"></div>
+      <div class="flow-node" style="border-color:var(--green); background:var(--green-dim);">
+        <div class="node-icon">✅</div>
+        <div class="node-label" style="color:var(--green);">tasks table</div>
+        <div class="node-sub">Production</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid-2 mb-24">
+    <!-- Gwen processing detail -->
+    <div class="card">
+      <h3>What Gwen Extracts</h3>
+      <table class="data-table">
+        <thead><tr><th>Output Type</th><th>Routed To</th></tr></thead>
+        <tbody>
+          <tr><td>Action items</td><td>gwen_task_candidates</td></tr>
+          <tr><td>Decisions</td><td>decisions table (new)</td></tr>
+          <tr><td>Blockers</td><td>blockers table (new)</td></tr>
+          <tr><td>Follow-ups</td><td>gwen_task_candidates</td></tr>
+          <tr><td>Noise / irrelevant</td><td>Archived with reason</td></tr>
+        </tbody>
+      </table>
+
+      <div class="divider"></div>
+      <h3>Dedup Logic</h3>
+      <table class="data-table">
+        <thead><tr><th>Decision</th><th>Condition</th></tr></thead>
+        <tbody>
+          <tr><td>Create new task</td><td>No semantic match found</td></tr>
+          <tr><td>Update existing</td><td>High similarity, same client + milestone</td></tr>
+          <tr><td>Link to existing</td><td>Related but distinct enough to keep separate</td></tr>
+          <tr><td>Flag for review</td><td>Ambiguous match: human decides</td></tr>
+          <tr><td>Discard</td><td>Confirmed duplicate or noise</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Approval queue -->
+    <div class="card">
+      <h3>Human Approval Queue</h3>
+      <div style="font-size:13px; color:var(--dim); margin-bottom:16px;">
+        Nothing writes to <span class="mono">tasks</span> without an approver acting on it. Rejected candidates are archived with a reason, providing a full audit trail.
+      </div>
+
+      <h4>Approvers</h4>
+      <div class="approver-list">
+        <div class="approver">
+          <div class="approver-avatar" style="background:#1E3A5F; color:var(--blue);">JJ</div>
+          <div>
+            <div class="approver-name">Jared Smith</div>
+          </div>
+        </div>
+        <div class="approver">
+          <div class="approver-avatar" style="background:#3D1C0D; color:var(--orange);">DG</div>
+          <div>
+            <div class="approver-name">David Guarin</div>
+          </div>
+        </div>
+        <div class="approver">
+          <div class="approver-avatar" style="background:#0D3326; color:var(--green);">CO</div>
+          <div>
+            <div class="approver-name">Cole Knuth</div>
+          </div>
+        </div>
+        <div class="approver">
+          <div class="approver-avatar" style="background:#2D1F5E; color:var(--purple);">CL</div>
+          <div>
+            <div class="approver-name">Cami Lombo</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+      <h3>New DB Tables in v1.2</h3>
+      <table class="data-table">
+        <thead><tr><th>Table</th><th>Purpose</th></tr></thead>
+        <tbody>
+          <tr><td><span class="mono">gwen_task_candidates</span></td><td>Staged tasks awaiting approval</td></tr>
+          <tr><td><span class="mono">gwen_runs</span></td><td>Processing run audit log</td></tr>
+          <tr><td><span class="mono">decisions</span></td><td>What was decided, when, by whom</td></tr>
+          <tr><td><span class="mono">blockers</span></td><td>Active and resolved blockers</td></tr>
+          <tr><td><span class="mono">action_item_candidates</span></td><td>Already exists, extended by Gwen</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Impact on team -->
+  <div class="card" style="border-color:var(--green);">
+    <h3>Impact on the Team</h3>
+    <table class="data-table">
+      <thead><tr><th>Who</th><th>Today</th><th>v1.2</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>Jared Smith</strong></td>
+          <td>Attends every meeting, manually interprets output into tasks</td>
+          <td>Reviews Gwen's pre-structured candidates: approve, reject, or edit</td>
+        </tr>
+        <tr>
+          <td><strong>David Guarin</strong></td>
+          <td>Executes tasks, also handles interpretation bottleneck</td>
+          <td>Moves to QA and architecture, reviewing edge cases Gwen flags</td>
+        </tr>
+        <tr>
+          <td><strong>Cole Knuth</strong></td>
+          <td>Strategic oversight on client engagement delivery</td>
+          <td>Primary approver for AI-generated candidates; final authority on task quality</td>
+        </tr>
+        <tr>
+          <td><strong>Cami Lombo</strong></td>
+          <td>Operations support across client engagements</td>
+          <td>Designated approver with queue access and audit trail</td>
+        </tr>
+        <tr>
+          <td><strong>Clients</strong></td>
+          <td>See tasks after manual creation lag</td>
+          <td>Faster task visibility; Gwen processes meetings same-day</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ────────────────────────────────────────────────────
+     SECTION 5: v1.3 — AI ORCHESTRATION
+──────────────────────────────────────────────────────── -->
+<section id="v13" class="section">
+  <div class="version-tag ver-13">v1.3: Planned</div>
+  <div class="section-title">Gwen: AI Orchestration Layer</div>
+  <div class="section-sub">Gwen evolves from a meeting processor into a full engagement intelligence system, with context memory, deliverable generation via Claude, and autonomous workflows that reduce human bottlenecks across the entire client lifecycle.</div>
+
+  <!-- Full architecture with AI layer -->
+  <div class="card card-lg mb-24" style="border-color:var(--purple);">
+    <h4>v1.3 Full System Architecture</h4>
+
+    <!-- Context memory layer -->
+    <div style="background:var(--purple-dim); border:1px solid var(--purple); border-radius:var(--radius); padding:16px; margin-bottom:16px;">
+      <div style="font-size:11px; font-weight:700; color:var(--purple); text-transform:uppercase; letter-spacing:.7px; margin-bottom:10px;">Context Memory Layer (New in v1.3)</div>
+      <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:10px;">
+        <div style="background:var(--bg); border:1px solid var(--border); border-radius:var(--radius-sm); padding:10px; text-align:center; font-size:11px; color:var(--dim);">📋<br>Decisions</div>
+        <div style="background:var(--bg); border:1px solid var(--border); border-radius:var(--radius-sm); padding:10px; text-align:center; font-size:11px; color:var(--dim);">🚧<br>Blockers</div>
+        <div style="background:var(--bg); border:1px solid var(--border); border-radius:var(--radius-sm); padding:10px; text-align:center; font-size:11px; color:var(--dim);">👤<br>Client Prefs</div>
+        <div style="background:var(--bg); border:1px solid var(--border); border-radius:var(--radius-sm); padding:10px; text-align:center; font-size:11px; color:var(--dim);">📁<br>Deliverable History</div>
+      </div>
+    </div>
+
+    <!-- Data flow -->
+    <div class="flow" style="padding:8px 0; flex-wrap:wrap; gap:0;">
+      <div class="flow-node">
+        <div class="node-icon">📝</div>
+        <div class="node-label">Fellow.app</div>
+        <div class="node-sub">Transcript / summary</div>
+      </div>
+      <div class="flow-arrow animated"></div>
+      <div class="gwen-node">
+        <div class="node-icon">🧠</div>
+        <div class="node-label">Gwen Orchestrator</div>
+        <div class="node-sub">Reads context memory</div>
+      </div>
+      <div class="flow-arrow animated"></div>
+      <div class="flow-node" style="border-color:var(--blue); background:var(--blue-dim);">
+        <div class="node-icon">📥</div>
+        <div class="node-label" style="color:var(--blue);">Approval Queue</div>
+        <div class="node-sub">Tasks + deliverables</div>
+      </div>
+      <div class="flow-arrow animated"></div>
+      <div class="flow-node" style="border-color:var(--orange); background:var(--orange-dim);">
+        <div class="node-icon">👥</div>
+        <div class="node-label" style="color:var(--orange);">Human Review</div>
+        <div class="node-sub">Jared / David / Cole / Cami</div>
+      </div>
+      <div class="flow-arrow animated"></div>
+      <div class="flow-node" style="border-color:var(--green); background:var(--green-dim);">
+        <div class="node-icon">🚀</div>
+        <div class="node-label" style="color:var(--green);">Live Portal</div>
+        <div class="node-sub">Client sees it</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid-2 mb-24">
+    <!-- Deliverable pipeline -->
+    <div class="card" style="border-color:var(--purple);">
+      <h3>Deliverable Generation Pipeline</h3>
+      <div style="font-size:13px; color:var(--dim); margin-bottom:16px;">
+        When Gwen detects a task that requires a deliverable, it triggers a Claude generation pipeline, drafting content against the client's full engagement history.
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <div style="display:flex; align-items:flex-start; gap:12px; padding:12px; background:var(--surface); border-radius:var(--radius-sm);">
+          <div style="width:24px;height:24px;border-radius:50%;background:var(--purple-dim);color:var(--purple);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">1</div>
+          <div><div style="font-size:12px;font-weight:600;">Task detection</div><div style="font-size:11px;color:var(--muted);">Gwen identifies deliverable_type (presentation, report, email, etc.)</div></div>
+        </div>
+        <div style="display:flex; align-items:flex-start; gap:12px; padding:12px; background:var(--surface); border-radius:var(--radius-sm);">
+          <div style="width:24px;height:24px;border-radius:50%;background:var(--purple-dim);color:var(--purple);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">2</div>
+          <div><div style="font-size:12px;font-weight:600;">Context assembly</div><div style="font-size:11px;color:var(--muted);">Gwen pulls client history, prior decisions, engagement notes from memory layer</div></div>
+        </div>
+        <div style="display:flex; align-items:flex-start; gap:12px; padding:12px; background:var(--surface); border-radius:var(--radius-sm);">
+          <div style="width:24px;height:24px;border-radius:50%;background:var(--purple-dim);color:var(--purple);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">3</div>
+          <div><div style="font-size:12px;font-weight:600;">Claude generation</div><div style="font-size:11px;color:var(--muted);">Claude drafts the deliverable using full context + task spec</div></div>
+        </div>
+        <div style="display:flex; align-items:flex-start; gap:12px; padding:12px; background:var(--surface); border-radius:var(--radius-sm);">
+          <div style="width:24px;height:24px;border-radius:50%;background:var(--purple-dim);color:var(--purple);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">4</div>
+          <div><div style="font-size:12px;font-weight:600;">Staged draft</div><div style="font-size:11px;color:var(--muted);">Draft stored in <span class="mono">deliverables</span> table (status: draft), not visible to client</div></div>
+        </div>
+        <div style="display:flex; align-items:flex-start; gap:12px; padding:12px; background:var(--surface); border-radius:var(--radius-sm);">
+          <div style="width:24px;height:24px;border-radius:50%;background:var(--green-dim);color:var(--green);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">5</div>
+          <div><div style="font-size:12px;font-weight:600;">Publish</div><div style="font-size:11px;color:var(--muted);">After human review: pushed to portal or Egnyte</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- New capabilities -->
+    <div>
+      <div class="card mb-16">
+        <h3>New Capabilities vs. v1.2</h3>
+        <table class="data-table">
+          <thead><tr><th>Capability</th><th>v1.2</th><th>v1.3</th></tr></thead>
+          <tbody>
+            <tr><td>Meeting processing</td><td><span class="badge badge-green">Yes</span></td><td><span class="badge badge-green">Yes</span></td></tr>
+            <tr><td>Task deduplication</td><td><span class="badge badge-green">Yes</span></td><td><span class="badge badge-green">Yes</span></td></tr>
+            <tr><td>Approval queue</td><td><span class="badge badge-green">Yes</span></td><td><span class="badge badge-green">Yes</span></td></tr>
+            <tr><td>Context memory</td><td><span class="badge badge-red">No</span></td><td><span class="badge badge-green">Yes</span></td></tr>
+            <tr><td>Deliverable generation</td><td><span class="badge badge-red">No</span></td><td><span class="badge badge-green">Yes</span></td></tr>
+            <tr><td>Decision tracking</td><td><span class="badge badge-blue">Partial</span></td><td><span class="badge badge-green">Full</span></td></tr>
+            <tr><td>Client preference memory</td><td><span class="badge badge-red">No</span></td><td><span class="badge badge-green">Yes</span></td></tr>
+            <tr><td>Autonomous workflows</td><td><span class="badge badge-red">No</span></td><td><span class="badge badge-green">Yes</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <h3>New DB Tables in v1.3</h3>
+        <table class="data-table">
+          <thead><tr><th>Table</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td><span class="mono">deliverables</span></td><td>Drafts + published assets</td></tr>
+            <tr><td><span class="mono">client_preferences</span></td><td>Persistent client context</td></tr>
+            <tr><td><span class="mono">engagement_memory</span></td><td>Cross-meeting context store</td></tr>
+            <tr><td><span class="mono">gwen_workflows</span></td><td>Autonomous workflow definitions</td></tr>
+            <tr><td><span class="mono">visibility_controls</span></td><td>Internal / client / editable flags</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Engagement hierarchy -->
+  <div class="card">
+    <h3>v1.3 Engagement Hierarchy (replaces flat project model)</h3>
+    <div style="display:flex; gap:0; align-items:flex-start; overflow-x:auto; padding:8px 0;">
+      <div style="text-align:center; min-width:110px; padding:12px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);">
+        <div style="font-size:20px; margin-bottom:4px;">🏢</div>
+        <div style="font-size:12px; font-weight:700;">Client</div>
+      </div>
+      <div style="display:flex; align-items:center; padding:0 6px; color:var(--border2); font-size:18px;">›</div>
+      <div style="text-align:center; min-width:120px; padding:12px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);">
+        <div style="font-size:20px; margin-bottom:4px;">🎯</div>
+        <div style="font-size:12px; font-weight:700;">Engagement</div>
+        <div style="font-size:10px; color:var(--muted);">12-36 month mandate</div>
+      </div>
+      <div style="display:flex; align-items:center; padding:0 6px; color:var(--border2); font-size:18px;">›</div>
+      <div style="text-align:center; min-width:120px; padding:12px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);">
+        <div style="font-size:20px; margin-bottom:4px;">🏁</div>
+        <div style="font-size:12px; font-weight:700;">Milestones</div>
+        <div style="font-size:10px; color:var(--muted);">Onboarding, Launch, etc.</div>
+      </div>
+      <div style="display:flex; align-items:center; padding:0 6px; color:var(--border2); font-size:18px;">›</div>
+      <div style="text-align:center; min-width:110px; padding:12px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);">
+        <div style="font-size:20px; margin-bottom:4px;">🔀</div>
+        <div style="font-size:12px; font-weight:700;">Workstreams</div>
+        <div style="font-size:10px; color:var(--muted);">Parallel tracks</div>
+      </div>
+      <div style="display:flex; align-items:center; padding:0 6px; color:var(--border2); font-size:18px;">›</div>
+      <div style="text-align:center; min-width:100px; padding:12px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);">
+        <div style="font-size:20px; margin-bottom:4px;">✅</div>
+        <div style="font-size:12px; font-weight:700;">Tasks</div>
+        <div style="font-size:10px; color:var(--muted);">+ Comments + Decisions</div>
+      </div>
+      <div style="display:flex; align-items:center; padding:0 6px; color:var(--border2); font-size:18px;">›</div>
+      <div style="text-align:center; min-width:110px; padding:12px; background:var(--purple-dim); border:1px solid var(--purple); border-radius:var(--radius);">
+        <div style="font-size:20px; margin-bottom:4px;">📄</div>
+        <div style="font-size:12px; font-weight:700; color:var(--purple);">Deliverables</div>
+        <div style="font-size:10px; color:rgba(167,139,250,.6);">Claude-generated</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ────────────────────────────────────────────────────
+     SECTION 6: ROADMAP
+──────────────────────────────────────────────────────── -->
+<section id="roadmap" class="section">
+  <div class="section-title">Version Roadmap</div>
+  <div class="section-sub">RampFuel OS evolution: from a real-time sync portal to a fully AI-orchestrated engagement intelligence system.</div>
+
+  <div class="grid-2">
+    <div class="timeline">
+      <div class="timeline-item">
+        <div class="timeline-dot done"></div>
+        <div class="tl-ver" style="color:var(--green);">MVP 1.0: Shipped</div>
+        <div class="tl-name">Core Portal + Sync</div>
+        <div class="tl-desc">The foundation. Real-time Asana sync into a secure, RLS-enforced Supabase backend with a branded client portal.</div>
+        <div class="tl-features">
+          <span class="tl-feat">Asana webhooks</span><span class="tl-feat">Cloudflare HMAC</span><span class="tl-feat">Supabase Auth</span>
+          <span class="tl-feat">RLS policies</span><span class="tl-feat">Client portal</span><span class="tl-feat">Password reset</span>
+          <span class="tl-feat">Branded emails</span>
+        </div>
+      </div>
+
+      <div class="timeline-item">
+        <div class="timeline-dot done"></div>
+        <div class="tl-ver" style="color:var(--green);">v1.1: Shipped</div>
+        <div class="tl-name">Meeting Recaps + Multi-Project</div>
+        <div class="tl-desc">Section-aware routing for Fellow.app meeting recaps. Multi-project tabs per client. Full webhook audit and backfill tooling.</div>
+        <div class="tl-features">
+          <span class="tl-feat">Meetings tab</span><span class="tl-feat">Section routing</span><span class="tl-feat">Sub-project tabs</span>
+          <span class="tl-feat">Realtime broadcast</span><span class="tl-feat">asana_section_name</span><span class="tl-feat">Webhook GID audit</span>
+          <span class="tl-feat">Dynasend + ThreatMate onboarded</span>
+        </div>
+      </div>
+
+      <div class="timeline-item">
+        <div class="timeline-dot active"></div>
+        <div class="tl-ver" style="color:var(--blue);">v1.2: In Planning</div>
+        <div class="tl-name">Gwen: Meeting Processing Layer</div>
+        <div class="tl-desc">Gwen enters the pipeline. AI-powered extraction of structured work from meeting transcripts, with semantic dedup and human approval gates before anything goes live in production.</div>
+        <div class="tl-features">
+          <span class="tl-feat" style="border-color:var(--blue); color:var(--blue);">Gwen integration</span>
+          <span class="tl-feat" style="border-color:var(--blue); color:var(--blue);">gwen_task_candidates</span>
+          <span class="tl-feat" style="border-color:var(--blue); color:var(--blue);">Semantic dedup</span>
+          <span class="tl-feat" style="border-color:var(--blue); color:var(--blue);">Approval queue UI</span>
+          <span class="tl-feat" style="border-color:var(--blue); color:var(--blue);">Decision tracking</span>
+          <span class="tl-feat" style="border-color:var(--blue); color:var(--blue);">Blocker tracking</span>
+        </div>
+      </div>
+
+      <div class="timeline-item">
+        <div class="timeline-dot future"></div>
+        <div class="tl-ver" style="color:var(--purple);">v1.3: Planned</div>
+        <div class="tl-name">Gwen: AI Orchestration</div>
+        <div class="tl-desc">Gwen becomes the central intelligence layer. Context memory across meetings and engagements, Claude-powered deliverable generation, and autonomous workflows with approval gates throughout.</div>
+        <div class="tl-features">
+          <span class="tl-feat" style="border-color:var(--purple); color:var(--purple);">Context memory</span>
+          <span class="tl-feat" style="border-color:var(--purple); color:var(--purple);">Claude deliverables</span>
+          <span class="tl-feat" style="border-color:var(--purple); color:var(--purple);">deliverables table</span>
+          <span class="tl-feat" style="border-color:var(--purple); color:var(--purple);">Client pref memory</span>
+          <span class="tl-feat" style="border-color:var(--purple); color:var(--purple);">Autonomous workflows</span>
+          <span class="tl-feat" style="border-color:var(--purple); color:var(--purple);">Engagement hierarchy</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Key design principles -->
+    <div>
+      <div class="card mb-20">
+        <h3>Design Principles</h3>
+        <div style="display:flex; flex-direction:column; gap:10px;">
+          <div style="padding:12px; background:var(--surface); border-radius:var(--radius-sm); border-left:3px solid var(--blue);">
+            <div style="font-size:12px; font-weight:700; margin-bottom:3px;">Supabase is the source of truth</div>
+            <div style="font-size:12px; color:var(--muted);">Asana is the operational sync layer. Every design decision assumes Supabase owns the data.</div>
+          </div>
+          <div style="padding:12px; background:var(--surface); border-radius:var(--radius-sm); border-left:3px solid var(--orange);">
+            <div style="font-size:12px; font-weight:700; margin-bottom:3px;">Human approval at every AI boundary</div>
+            <div style="font-size:12px; color:var(--muted);">Gwen never writes to production tables without a human sign-off. No exceptions in v1.2 or v1.3.</div>
+          </div>
+          <div style="padding:12px; background:var(--surface); border-radius:var(--radius-sm); border-left:3px solid var(--purple);">
+            <div style="font-size:12px; font-weight:700; margin-bottom:3px;">Additive migration only</div>
+            <div style="font-size:12px; color:var(--muted);">New tables extend the existing schema. The current portal keeps working through every version transition.</div>
+          </div>
+          <div style="padding:12px; background:var(--surface); border-radius:var(--radius-sm); border-left:3px solid var(--green);">
+            <div style="font-size:12px; font-weight:700; margin-bottom:3px;">RLS enforced at every layer</div>
+            <div style="font-size:12px; color:var(--muted);">Every new table in v1.2 and v1.3 gets RLS from day one. Client isolation is non-negotiable.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Migration Strategy</h3>
+        <table class="data-table">
+          <thead><tr><th>Phase</th><th>What happens</th><th>Portal impact</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><span class="badge badge-green">Phase 1</span></td>
+              <td>PMS tables added alongside Asana sync (dual-write)</td>
+              <td>None; existing queries unchanged</td>
+            </tr>
+            <tr>
+              <td><span class="badge badge-blue">Phase 2</span></td>
+              <td>Portal queries switch from Asana-synced tasks to PMS tasks</td>
+              <td>Zero downtime cutover</td>
+            </tr>
+            <tr>
+              <td><span class="badge badge-purple">Phase 3</span></td>
+              <td>Asana becomes optional; webhooks write to PMS, not tasks directly</td>
+              <td>Richer data, same portal interface</td>
+            </tr>
+            <tr>
+              <td><span class="badge badge-orange">Phase 4</span></td>
+              <td>Asana removed from critical path</td>
+              <td>PMS is now the complete operational system</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<script>
+function show(id, btn) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'))
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'))
+  document.getElementById(id).classList.add('active')
+  btn.classList.add('active')
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+}
+</script>
+</body>
+</html>
